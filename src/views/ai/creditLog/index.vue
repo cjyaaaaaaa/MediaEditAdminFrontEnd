@@ -8,6 +8,8 @@
         <el-select v-model="queryParams.bizType" placeholder="业务类型" clearable style="width: 200px">
           <el-option label="文生图" value="ai_generate" />
           <el-option label="图生图" value="ai_edit" />
+          <el-option label="文生图退还" value="ai_generate_refund" />
+          <el-option label="图生图退还" value="ai_edit_refund" />
           <el-option label="管理员调整" value="admin_recharge" />
         </el-select>
       </el-form-item>
@@ -31,6 +33,8 @@
         <template #default="scope">
           <span v-if="scope.row.bizType === 'ai_generate'">文生图</span>
           <span v-else-if="scope.row.bizType === 'ai_edit'">图生图</span>
+          <span v-else-if="scope.row.bizType === 'ai_generate_refund'">文生图退还</span>
+          <span v-else-if="scope.row.bizType === 'ai_edit_refund'">图生图退还</span>
           <span v-else-if="scope.row.bizType === 'admin_recharge'">管理员调整</span>
           <span v-else>{{ scope.row.bizType }}</span>
         </template>
