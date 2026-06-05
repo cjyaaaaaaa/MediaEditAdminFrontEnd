@@ -11,6 +11,7 @@
           <el-option label="文生图退还" value="ai_generate_refund" />
           <el-option label="图生图退还" value="ai_edit_refund" />
           <el-option label="管理员调整" value="admin_recharge" />
+          <el-option label="微信充值" value="wx_virtual_recharge" />
         </el-select>
       </el-form-item>
       <el-form-item>
@@ -36,6 +37,7 @@
           <span v-else-if="scope.row.bizType === 'ai_generate_refund'">文生图退还</span>
           <span v-else-if="scope.row.bizType === 'ai_edit_refund'">图生图退还</span>
           <span v-else-if="scope.row.bizType === 'admin_recharge'">管理员调整</span>
+          <span v-else-if="scope.row.bizType === 'wx_virtual_recharge'">微信充值</span>
           <span v-else>{{ scope.row.bizType }}</span>
         </template>
       </el-table-column>
