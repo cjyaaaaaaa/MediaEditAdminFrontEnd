@@ -9,6 +9,8 @@
       </el-form-item>
       <el-form-item label="支付模式" prop="payMode">
         <el-select v-model="queryParams.payMode" placeholder="支付模式" clearable style="width: 180px">
+          <el-option label="微信支付" value="wx_jsapi" />
+          <el-option label="扫码支付" value="wx_native" />
           <el-option label="道具直购" value="short_series_goods" />
           <el-option label="代币充值" value="short_series_coin" />
         </el-select>
@@ -140,6 +142,8 @@ function formatCent(value?: number) {
 }
 
 function formatMode(mode?: string) {
+  if (mode === 'wx_jsapi') return '微信支付'
+  if (mode === 'wx_native') return '扫码支付'
   if (mode === 'short_series_goods') return '道具直购'
   if (mode === 'short_series_coin') return '代币充值'
   return mode || '-'
