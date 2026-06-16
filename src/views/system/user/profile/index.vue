@@ -69,7 +69,7 @@ import resetPwd from "./resetPwd.vue"
 import { getUserProfile } from "@/api/system/user"
 import type { SysUser } from '@/types/api/system/user'
 import useUserStore from '@/store/modules/user'
-import { resolveResourceUrl } from '@/utils/ossUpload'
+import { resolveResourceUrl } from '@/utils/objectStorageUpload'
 import defAva from '@/assets/images/profile.jpg'
 
 const route = useRoute()

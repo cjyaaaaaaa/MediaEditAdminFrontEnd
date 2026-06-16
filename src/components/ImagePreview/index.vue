@@ -15,7 +15,7 @@
 </template>
 
 <script setup lang="ts">
-import { resolveResourceUrl } from "@/utils/ossUpload"
+import { resolveResourceUrl } from "@/utils/objectStorageUpload"
 
 const props = defineProps({
   src: {

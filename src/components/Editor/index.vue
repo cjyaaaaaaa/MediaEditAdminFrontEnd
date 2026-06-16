@@ -32,7 +32,7 @@ import { QuillEditor } from "@vueup/vue-quill"
 import "@vueup/vue-quill/dist/vue-quill.snow.css"
 import { getToken } from "@/utils/auth"
 import type { UploadFileResult } from '@/types/api/common'
-import { resolveUploadPublicUrl } from "@/utils/ossUpload"
+import { resolveUploadPublicUrl } from "@/utils/objectStorageUpload"
 
 const { proxy } = getCurrentInstance()
 

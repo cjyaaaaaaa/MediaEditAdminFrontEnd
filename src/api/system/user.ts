@@ -101,7 +101,7 @@ export function updateUserPwd(oldPassword: string, newPassword: string): Promise
   })
 }
 
-// 用户头像上传（后端写入 OSS 目录 avatar）
+// 用户头像上传（后端写入对象存储目录 avatar）
 export function uploadAvatar(data: FormData): Promise<UserProfileAvatarResult> {
   return request({
     url: '/system/user/profile/avatar',

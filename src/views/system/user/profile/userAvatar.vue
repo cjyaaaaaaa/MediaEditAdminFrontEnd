@@ -63,7 +63,7 @@ import "vue-cropper/dist/index.css"
 import { VueCropper } from "vue-cropper"
 import { uploadAvatar } from "@/api/system/user"
 import useUserStore from "@/store/modules/user"
-import { resolveResourceUrl } from "@/utils/ossUpload"
+import { resolveResourceUrl } from "@/utils/objectStorageUpload"
 
 const userStore = useUserStore()
 const { proxy } = getCurrentInstance()
@@ -71,10 +71,10 @@ const { proxy } = getCurrentInstance()
 const open = ref<boolean>(false)
 const visible = ref<boolean>(false)
 const title = ref<string>("修改头像")
-/** 强制刷新圆角头像，避免与上一张 OSS 地址相同导致浏览器缓存不更新 */
+/** 强制刷新圆角头像，避免与上一张 对象存储地址相同导致浏览器缓存不更新 */
 const avatarRefreshKey = ref(0)
 
-/** 头像栏展示用（OSS 完整 URL，避免与裁剪用 blob 混淆） */
+/** 头像栏展示用（对象存储完整 URL，避免与裁剪用 blob 混淆） */
 const displayAvatar = computed(() => {
   const v = userStore.avatar
   if (!v) {
@@ -93,7 +93,7 @@ function revokeCropperBlob() {
 }
 
 /**
- * vue-cropper 在 canvas 中绘制外链图片需跨域；OSS 常无 CORS，直接填 https 会空白。
+ * vue-cropper 在 canvas 中绘制外链图片需跨域；对象存储常无 CORS，直接填 https 会空白。
  * 打开弹窗时尽量拉成 blob: 供裁剪；失败再回退原 URL。
  */
 async function prepareImageForCropper() {

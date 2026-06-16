@@ -42,7 +42,7 @@
 
 <script setup lang="ts">
 import { getToken } from "@/utils/auth"
-import { resolveUploadPublicUrl, resolveResourceUrl } from "@/utils/ossUpload"
+import { resolveUploadPublicUrl, resolveResourceUrl } from "@/utils/objectStorageUpload"
 import Sortable from 'sortablejs'
 import type { UploadFileResult } from '@/types/api/common'
 

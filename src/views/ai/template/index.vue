@@ -275,7 +275,7 @@
 <script setup lang="ts" name="AiTemplate">
 import { listTemplate, getTemplate, addTemplate, updateTemplate, auditTemplate, delTemplate } from '@/api/ai/template'
 import { listTemplateCategory } from '@/api/ai/templateCategory'
-import { resolveResourceUrl } from '@/utils/ossUpload'
+import { resolveResourceUrl } from '@/utils/objectStorageUpload'
 import type { AiImageTemplate, TemplateQuery } from '@/api/ai/template'
 import type { AiTemplateCategory } from '@/api/ai/templateCategory'
 

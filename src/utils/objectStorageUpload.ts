@@ -2,7 +2,7 @@ import { isExternal } from '@/utils/validate'
 import type { UploadFileResult } from '@/types/api/common'
 
 /**
- * Parse upload API response to a browser-loadable URL (OSS absolute or relative + API base).
+ * Parse upload API response to a browser-loadable URL (object storage absolute or relative + API base).
  */
 export function resolveUploadPublicUrl(res: Pick<UploadFileResult, 'url' | 'fileName'>): string {
   const raw = res.url || res.fileName
@@ -14,7 +14,7 @@ export function resolveUploadPublicUrl(res: Pick<UploadFileResult, 'url' | 'file
 
 /**
  * Normalize stored image/file URL for display (avatar, ImageUpload, ImagePreview, etc.).
- * Supports: full http(s) OSS URL, protocol-relative //, and backend relative paths.
+ * Supports: full http(s) object storage URL, protocol-relative //, and backend relative paths.
  */
 export function resolveResourceUrl(raw: string | undefined | null): string {
   if (raw == null) {
