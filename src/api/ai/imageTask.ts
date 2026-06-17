@@ -8,6 +8,7 @@ export interface AiImageTask {
   userName?: string
   taskType?: string
   status?: string
+  requestJson?: string
   prompt?: string
   userImages?: string
   width?: number
@@ -17,10 +18,23 @@ export interface AiImageTask {
   modelId?: number
   creditCost?: number
   platformTaskId?: string
-  imageUrl?: string
-  size?: number
-  mimeType?: string
+  resultMediaId?: number
+  media?: AiMediaAsset
   errorInfo?: string
+  createTime?: string
+}
+
+export interface AiMediaAsset {
+  mediaId?: number
+  mediaType?: string
+  url?: string
+  objectKey?: string
+  fileName?: string
+  mimeType?: string
+  size?: number
+  width?: number
+  height?: number
+  durationMs?: number
   createTime?: string
 }
 

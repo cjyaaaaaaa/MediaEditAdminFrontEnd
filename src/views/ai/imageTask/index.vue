@@ -44,18 +44,22 @@
       </el-table-column>
       <el-table-column label="Prompt" align="center" prop="prompt" min-width="200" show-overflow-tooltip />
       <el-table-column label="积分" align="center" prop="creditCost" width="80" />
-      <el-table-column label="文件大小" align="center" prop="size" width="100">
+      <el-table-column label="文件大小" align="center" width="100">
         <template #default="scope">
-          <span>{{ formatFileSize(scope.row.size) }}</span>
+          <span>{{ formatFileSize(scope.row.media?.size) }}</span>
         </template>
       </el-table-column>
-      <el-table-column label="MIME" align="center" prop="mimeType" width="120" show-overflow-tooltip />
+      <el-table-column label="MIME" align="center" width="120" show-overflow-tooltip>
+        <template #default="scope">
+          <span>{{ scope.row.media?.mimeType || '-' }}</span>
+        </template>
+      </el-table-column>
       <el-table-column label="预览" align="center" width="100">
         <template #default="scope">
           <el-image
-            v-if="scope.row.imageUrl"
-            :src="scope.row.imageUrl"
-            :preview-src-list="[scope.row.imageUrl]"
+            v-if="scope.row.media?.url"
+            :src="scope.row.media.url"
+            :preview-src-list="[scope.row.media.url]"
             fit="cover"
             style="width: 56px; height: 56px; border-radius: 6px"
           />
