@@ -8,6 +8,7 @@
       name="file"
       :show-file-list="false"
       :headers="headers"
+      :data="uploadData"
       class="editor-img-uploader"
       v-if="type == 'url'"
     >
@@ -37,7 +38,8 @@ import { resolveUploadPublicUrl } from "@/utils/objectStorageUpload"
 const { proxy } = getCurrentInstance()
 
 const quillEditorRef = ref()
-const uploadUrl = ref(import.meta.env.VITE_APP_BASE_API + "/oss/upload")
+const uploadUrl = ref(import.meta.env.VITE_APP_BASE_API + "/oss/uploadToDir")
+const uploadData = { directory: "rich-text" }
 const headers = ref({
   Authorization: "Bearer " + getToken()
 })
@@ -191,6 +193,7 @@ function handlePasteCapture(e: ClipboardEvent) {
 function insertImage(file: File) {
   const formData = new FormData()
   formData.append("file", file)
+  formData.append("directory", uploadData.directory)
   axios.post(uploadUrl.value, formData, { headers: { "Content-Type": "multipart/form-data", Authorization: headers.value.Authorization } }).then((res: { data: UploadFileResult }) => {
     handleUploadSuccess(res.data as UploadFileResult, file)
   })

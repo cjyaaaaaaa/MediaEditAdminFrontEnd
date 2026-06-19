@@ -64,7 +64,7 @@ const props = defineProps({
   // 上传接口地址
   action: {
     type: String,
-    default: "/oss/upload"
+    default: "/oss/uploadToDir"
   },
   // 上传携带的参数
   data: {
@@ -136,6 +136,10 @@ watch(() => props.modelValue, (val: any) => {
 
 // 上传前loading加载
 function handleBeforeUpload(file: File): boolean {
+  if (!getUploadDirectory()) {
+    proxy.$modal.msgError("请配置上传目录")
+    return false
+  }
   let isImg = false
   if (props.fileType.length) {
     let fileExtension = ""
@@ -168,6 +172,10 @@ function handleBeforeUpload(file: File): boolean {
   proxy.$modal.loading("正在上传图片，请稍候...")
   number.value++
   return true
+}
+
+function getUploadDirectory(): string {
+  return String((props.data as any)?.directory || '').trim()
 }
 
 // 文件个数超出

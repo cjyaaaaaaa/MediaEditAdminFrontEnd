@@ -57,7 +57,7 @@ const props = defineProps({
   // 上传接口地址
   action: {
     type: String,
-    default: "/oss/upload"
+    default: "/oss/uploadToDir"
   },
   // 上传携带的参数
   data: {
@@ -129,6 +129,10 @@ watch(() => props.modelValue, (val: any) => {
 
 // 上传前校检格式和大小
 function handleBeforeUpload(file: File): boolean {
+  if (!getUploadDirectory()) {
+    proxy.$modal.msgError("请配置上传目录")
+    return false
+  }
   // 校检文件类型
   if (props.fileType.length > 0) {
     const fileName = file.name.split('.')
@@ -155,6 +159,10 @@ function handleBeforeUpload(file: File): boolean {
   proxy.$modal.loading("正在上传文件，请稍候...")
   number.value++
   return true
+}
+
+function getUploadDirectory(): string {
+  return String((props.data as any)?.directory || '').trim()
 }
 
 // 文件个数超出
