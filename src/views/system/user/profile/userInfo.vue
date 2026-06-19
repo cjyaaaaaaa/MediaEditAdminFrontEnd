@@ -7,7 +7,7 @@
          <el-input v-model="form.phonenumber" maxlength="11" />
       </el-form-item>
       <el-form-item label="邮箱" prop="email">
-         <el-input v-model="form.email" maxlength="50" />
+         <el-input v-model="form.email" maxlength="255" />
       </el-form-item>
       <el-form-item label="性别">
          <el-radio-group v-model="form.sex">
