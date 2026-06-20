@@ -135,12 +135,3 @@ export function deptTreeSelect(): Promise<AjaxResult<TreeSelect>> {
     method: 'get'
   })
 }
-
-// 调整用户积分
-export function editUserCredit(data: { userId: number; amount: number; remark?: string }): Promise<AjaxResult> {
-  return request({
-    url: '/system/user/editCredit',
-    method: 'put',
-    data
-  })
-}

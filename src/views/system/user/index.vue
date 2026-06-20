@@ -50,7 +50,6 @@
           <el-table-column label="用户昵称" align="center" key="nickName" prop="nickName" v-if="columns.nickName.visible" :show-overflow-tooltip="true" />
           <el-table-column label="部门" align="center" key="deptName" prop="dept.deptName" v-if="columns.deptName.visible" :show-overflow-tooltip="true" />
           <el-table-column label="手机号码" align="center" key="phonenumber" prop="phonenumber" v-if="columns.phonenumber.visible" width="120" />
-          <el-table-column label="积分余额" align="center" key="creditBalance" prop="creditBalance" v-if="columns.creditBalance.visible" width="100" />
           <el-table-column label="状态" align="center" key="status" v-if="columns.status.visible">
             <template #default="scope">
               <el-switch
@@ -79,9 +78,6 @@
               </el-tooltip>
               <el-tooltip content="分配角色" placement="top" v-if="scope.row.userId !== 1">
                 <el-button link type="primary" icon="CircleCheck" @click="handleAuthRole(scope.row)" v-hasPermi="['system:user:edit']"></el-button>
-              </el-tooltip>
-              <el-tooltip content="调整积分" placement="top" v-if="scope.row.userId !== 1">
-                <el-button link type="primary" icon="Coin" @click="handleEditCredit(scope.row)" v-hasPermi="['system:user:editCredit']"></el-button>
               </el-tooltip>
             </template>
           </el-table-column>
@@ -179,30 +175,6 @@
     <!-- 用户导入对话框 -->
     <excel-import-dialog ref="importUserRef" title="用户导入" action="/system/user/importData" template-action="/system/user/importTemplate" template-file-name="user_template" update-support-label="是否更新已经存在的用户数据" @success="getList" />
 
-    <!-- 调整积分对话框 -->
-    <el-dialog title="调整积分" v-model="creditOpen" width="450px" append-to-body>
-      <el-form ref="creditRef" :model="creditForm" :rules="creditRules" label-width="90px">
-        <el-form-item label="用户">
-          <el-input :model-value="creditForm.userName" disabled />
-        </el-form-item>
-        <el-form-item label="当前余额">
-          <el-input :model-value="String(creditForm.currentBalance ?? 0)" disabled />
-        </el-form-item>
-        <el-form-item label="调整积分" prop="amount">
-          <el-input-number v-model="creditForm.amount" controls-position="right" :step="1" />
-          <div class="form-tip">正数为充值，负数为扣减</div>
-        </el-form-item>
-        <el-form-item label="备注" prop="remark">
-          <el-input v-model="creditForm.remark" type="textarea" placeholder="请输入备注" />
-        </el-form-item>
-      </el-form>
-      <template #footer>
-        <div class="dialog-footer">
-          <el-button type="primary" @click="submitCreditForm">确 定</el-button>
-          <el-button @click="creditOpen = false">取 消</el-button>
-        </div>
-      </template>
-    </el-dialog>
   </div>
 </template>
 
@@ -211,7 +183,7 @@ import { getToken } from "@/utils/auth"
 import useAppStore from '@/store/modules/app'
 import TreePanel from "@/components/TreePanel"
 import ExcelImportDialog from "@/components/ExcelImportDialog"
-import { changeUserStatus, listUser, resetUserPwd, delUser, getUser, updateUser, addUser, deptTreeSelect, editUserCredit } from "@/api/system/user"
+import { changeUserStatus, listUser, resetUserPwd, delUser, getUser, updateUser, addUser, deptTreeSelect } from "@/api/system/user"
 import type { SysUser, UserQueryParams, UserFormDataResult } from '@/types/api/system/user'
 import type { SysRole } from '@/types/api/system/role'
 import type { SysPost } from '@/types/api/system/post'
@@ -237,17 +209,6 @@ const enabledDeptOptions = ref<TreeSelect[] | undefined>(undefined)
 const initPassword = ref<string | undefined>(undefined)
 const postOptions = ref<SysPost[]>([])
 const roleOptions = ref<SysRole[]>([])
-const creditOpen = ref<boolean>(false)
-const creditForm = ref({
-  userId: undefined as number | undefined,
-  userName: '',
-  currentBalance: 0,
-  amount: 0,
-  remark: ''
-})
-const creditRules = {
-  amount: [{ required: true, message: '调整积分不能为空', trigger: 'blur' }]
-}
 // 列显隐信息
 const columns = ref<Record<string, TableShowColumns>>({
   userId: { label: '用户编号', visible: true },
@@ -255,7 +216,6 @@ const columns = ref<Record<string, TableShowColumns>>({
   nickName: { label: '用户昵称', visible: true },
   deptName: { label: '部门', visible: true },
   phonenumber: { label: '手机号码', visible: true },
-  creditBalance: { label: '积分余额', visible: true },
   status: { label: '状态', visible: true },
   createTime: { label: '创建时间', visible: true }
 })
@@ -402,36 +362,6 @@ function handleResetPwd(row: SysUser) {
       proxy.$modal.msgSuccess("修改成功，新密码是：" + value)
     })
   }).catch(() => {})
-}
-
-function handleEditCredit(row: SysUser) {
-  creditForm.value = {
-    userId: row.userId,
-    userName: row.userName || '',
-    currentBalance: row.creditBalance ?? 0,
-    amount: 0,
-    remark: ''
-  }
-  creditOpen.value = true
-}
-
-function submitCreditForm() {
-  proxy.$refs['creditRef'].validate((valid: boolean) => {
-    if (!valid || creditForm.value.userId == null) return
-    if (creditForm.value.amount === 0) {
-      proxy.$modal.msgError('调整积分不能为0')
-      return
-    }
-    editUserCredit({
-      userId: creditForm.value.userId,
-      amount: creditForm.value.amount,
-      remark: creditForm.value.remark
-    }).then(res => {
-      proxy.$modal.msgSuccess('调整成功，当前余额：' + (res.creditBalance ?? ''))
-      creditOpen.value = false
-      getList()
-    })
-  })
 }
 
 /** 选择条数  */
