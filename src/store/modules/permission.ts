@@ -4,6 +4,7 @@ import { getRouters } from '@/api/menu'
 import Layout from '@/layout/index.vue'
 import ParentView from '@/components/ParentView/index.vue'
 import InnerLink from '@/layout/components/InnerLink/index.vue'
+import { isHttp } from '@/utils/validate'
 
 // 匹配views里面所有的.vue文件
 const modules = import.meta.glob('./../../views/**/*.vue')
@@ -32,13 +33,17 @@ const usePermissionStore = defineStore(
       setSidebarRouters(routes: any[]) {
         this.sidebarRouters = routes
       },
+      getDefaultRoutePath(): string {
+        return findFirstAccessibleRoute(this.sidebarRouters) || '/user/profile'
+      },
       generateRoutes(roles?: any[]): Promise<any[]> {
         return new Promise(resolve => {
           // 向后端请求路由数据
           getRouters().then(res => {
-            const sdata = JSON.parse(JSON.stringify(res.data))
-            const rdata = JSON.parse(JSON.stringify(res.data))
-            const defaultData = JSON.parse(JSON.stringify(res.data))
+            const routes = filterObsoleteRoutes(res.data)
+            const sdata = JSON.parse(JSON.stringify(routes))
+            const rdata = JSON.parse(JSON.stringify(routes))
+            const defaultData = JSON.parse(JSON.stringify(routes))
             const sidebarRoutes = filterAsyncRouter(sdata)
             const rewriteRoutes = filterAsyncRouter(rdata, false, true)
             const defaultRoutes = filterAsyncRouter(defaultData)
@@ -54,6 +59,35 @@ const usePermissionStore = defineStore(
       }
     }
   })
+
+function filterObsoleteRoutes(routes: any[]): any[] {
+  return routes
+    .filter(route => route.meta?.title !== '若依官网' && route.path !== 'http://ruoyi.vip')
+    .map(route => ({
+      ...route,
+      children: route.children ? filterObsoleteRoutes(route.children) : route.children
+    }))
+}
+
+function findFirstAccessibleRoute(routes: any[], parentPath = ''): string | undefined {
+  for (const route of routes) {
+    if (route.hidden || isHttp(route.path)) {
+      continue
+    }
+    const routePath = route.path.startsWith('/')
+      ? route.path
+      : `${parentPath}/${route.path}`.replace(/\/+/g, '/')
+    if (route.children?.length) {
+      const childPath = findFirstAccessibleRoute(route.children, routePath)
+      if (childPath) {
+        return childPath
+      }
+    } else if (routePath && routePath !== '/') {
+      return routePath
+    }
+  }
+  return undefined
+}
 
 // 遍历后台传来的路由字符串，转换为组件对象
 function filterAsyncRouter(asyncRouterMap: any[], lastRouter = false, type = false) {

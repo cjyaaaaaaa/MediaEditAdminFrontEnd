@@ -48,7 +48,11 @@ router.beforeEach((to, from, next) => {
                 router.addRoute(route) // 动态添加可访问路由表
               }
             })
-            next({ ...to, replace: true }) // hack方法 确保addRoutes已完成
+            if (to.path === '/') {
+              next({ path: usePermissionStore().getDefaultRoutePath(), replace: true })
+            } else {
+              next({ ...to, replace: true }) // hack方法 确保addRoutes已完成
+            }
           })
         }).catch((err: any) => {
           useUserStore().logOut().then(() => {
@@ -57,7 +61,11 @@ router.beforeEach((to, from, next) => {
           })
         })
       } else {
-        next()
+        if (to.path === '/') {
+          next({ path: usePermissionStore().getDefaultRoutePath(), replace: true })
+        } else {
+          next()
+        }
       }
     }
   } else {
