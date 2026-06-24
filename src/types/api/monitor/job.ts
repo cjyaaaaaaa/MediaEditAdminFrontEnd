@@ -13,7 +13,7 @@ export interface JobQueryParams extends PageDomain {
 /** 定时任务信息 */
 export interface SysJob extends BaseEntity {
   /** 任务编号 */
-  jobId?: number;
+  jobId?: string;
   /** 任务名称 */
   jobName?: string;
   /** 任务组名 */

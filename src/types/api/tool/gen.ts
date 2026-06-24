@@ -16,7 +16,7 @@ export interface GenQueryParams extends PageDomain {
 /** 代码生成业务信息 */
 export interface GenTable extends BaseEntity {
   /** 主键编号 */
-  tableId?: number;
+  tableId?: string;
   /** 表名称 */
   tableName?: string;
   /** 表描述 */
@@ -64,9 +64,9 @@ export interface GenTable extends BaseEntity {
 /** 生成表列字段信息 */
 export interface GenTableColumn extends BaseEntity {
   /** 主键编号 */
-  columnId?: number
+  columnId?: string
   /** 归属表编号 */
-  tableId?: number
+  tableId?: string
   /** 列名称 */
   columnName?: string
   /** 列描述 */

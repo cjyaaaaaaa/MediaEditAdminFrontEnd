@@ -151,7 +151,7 @@ const jobLogList = ref<SysJobLog[]>([])
 const open = ref<boolean>(false)
 const loading = ref<boolean>(true)
 const showSearch = ref<boolean>(true)
-const ids = ref<number[]>([])
+const ids = ref<string[]>([])
 const multiple = ref<boolean>(true)
 const total = ref<number>(0)
 const dateRange = ref<string[]>([])
@@ -239,8 +239,8 @@ function handleExport() {
 }
 
 (() => {
-  const jobId = route.params && Number(route.params.jobId)
-  if (jobId !== undefined && jobId != 0) {
+  const jobId = route.params && String(route.params.jobId)
+  if (jobId !== undefined && jobId !== '0') {
     getJob(jobId).then(response => {
       queryParams.value.jobName = response.data!.jobName
       queryParams.value.jobGroup = response.data!.jobGroup

@@ -18,7 +18,7 @@ export interface LogininforQueryParams extends PageDomain {
 /** 登录日志信息 */
 export interface SysLogininfor extends BaseEntity {
   /** 登录日志编号 */
-  infoId?: number;
+  infoId?: string;
   /** 用户账号 */
   userName?: string;
   /** 登录地址 */

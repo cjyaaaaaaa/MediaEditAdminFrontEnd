@@ -5,7 +5,7 @@
         <el-input v-model="queryParams.orderNo" placeholder="请输入订单号" clearable style="width: 220px" @keyup.enter="handleQuery" />
       </el-form-item>
       <el-form-item label="用户ID" prop="userId">
-        <el-input-number v-model="queryParams.userId" :min="1" controls-position="right" placeholder="用户ID" clearable style="width: 180px" />
+        <el-input v-model="queryParams.userId" placeholder="用户ID" clearable style="width: 180px" />
       </el-form-item>
       <el-form-item label="计费类型" prop="billingType">
         <el-select v-model="queryParams.billingType" placeholder="计费类型" clearable style="width: 160px">

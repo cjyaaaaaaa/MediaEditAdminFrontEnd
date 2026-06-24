@@ -2,7 +2,7 @@
   <div class="app-container">
     <el-form :model="queryParams" ref="queryRef" :inline="true" v-show="showSearch">
       <el-form-item label="用户ID" prop="userId">
-        <el-input-number v-model="queryParams.userId" :min="1" controls-position="right" style="width: 160px" />
+        <el-input v-model="queryParams.userId" placeholder="用户ID" clearable style="width: 160px" />
       </el-form-item>
       <el-form-item label="账号" prop="userName">
         <el-input v-model="queryParams.userName" placeholder="请输入账号" clearable @keyup.enter="handleQuery" />
@@ -59,6 +59,7 @@
           <el-button link type="primary" icon="View" @click="handleDetail(scope.row)" v-hasPermi="['system:customerUser:query']">详情</el-button>
           <el-button link type="primary" icon="Key" @click="handleResetPwd(scope.row)" v-hasPermi="['system:customerUser:resetPwd']">重置密码</el-button>
           <el-button link type="primary" icon="Coin" @click="handleEditCredit(scope.row)" v-hasPermi="['system:customerUser:editCredit']">积分</el-button>
+          <el-button link type="danger" icon="Delete" @click="handleDelete(scope.row)" v-hasPermi="['system:customerUser:remove']">删除</el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -105,7 +106,7 @@
 
 <script setup lang="ts" name="CustomerUser">
 import {
-  changeCustomerUserStatus, editCustomerUserCredit, getCustomerUser, listCustomerUser,
+  changeCustomerUserStatus, deleteCustomerUser, editCustomerUserCredit, getCustomerUser, listCustomerUser,
   resetCustomerUserPassword, type CustomerUser, type CustomerUserQuery
 } from '@/api/system/customerUser'
 
@@ -118,7 +119,7 @@ const userList = ref<CustomerUser[]>([])
 const detailOpen = ref(false)
 const detail = ref<CustomerUser>({})
 const creditOpen = ref(false)
-const creditForm = ref({ userId: 0, userName: '', currentBalance: 0, amount: 0, remark: '' })
+const creditForm = ref({ userId: '', userName: '', currentBalance: 0, amount: 0, remark: '' })
 const creditRules = { amount: [{ required: true, message: '调整数量不能为空', trigger: 'blur' }] }
 const queryParams = ref<CustomerUserQuery>({ pageNum: 1, pageSize: 10 })
 
@@ -173,6 +174,15 @@ function submitCredit() {
       getList()
     })
   })
+}
+
+function handleDelete(row: CustomerUser) {
+  proxy.$modal.confirm(`确认要删除客户"${row.userName}"吗？删除后该用户可重新注册。`).then(() =>
+    deleteCustomerUser(row.userId!)
+  ).then(() => {
+    proxy.$modal.msgSuccess('删除成功')
+    getList()
+  }).catch(() => {})
 }
 
 getList()

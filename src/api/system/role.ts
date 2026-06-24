@@ -11,7 +11,7 @@ export function listRole(query: RoleQueryParams): Promise<TableDataInfo<SysRole[
 }
 
 // 查询角色详细
-export function getRole(roleId: number): Promise<AjaxResult<SysRole>> {
+export function getRole(roleId: string): Promise<AjaxResult<SysRole>> {
   return request({
     url: '/system/role/' + roleId,
     method: 'get'
@@ -46,7 +46,7 @@ export function dataScope(data: SysRole): Promise<AjaxResult> {
 }
 
 // 角色状态修改
-export function changeRoleStatus(roleId: number, status: string): Promise<AjaxResult> {
+export function changeRoleStatus(roleId: string, status: string): Promise<AjaxResult> {
   const data = {
     roleId,
     status
@@ -59,7 +59,7 @@ export function changeRoleStatus(roleId: number, status: string): Promise<AjaxRe
 }
 
 // 删除角色
-export function delRole(roleId: number | number[]): Promise<AjaxResult> {
+export function delRole(roleId: string | string[]): Promise<AjaxResult> {
   return request({
     url: '/system/role/' + roleId,
     method: 'delete'
@@ -112,7 +112,7 @@ export function authUserSelectAll(data: AuthUserSelectParams): Promise<AjaxResul
 }
 
 // 根据角色ID查询部门树结构
-export function deptTreeSelect(roleId: number): Promise<RoleDeptTreeResult> {
+export function deptTreeSelect(roleId: string): Promise<RoleDeptTreeResult> {
   return request({
     url: '/system/role/deptTree/' + roleId,
     method: 'get'

@@ -11,7 +11,7 @@ export function listJobLog(query: JobLogQueryParams): Promise<TableDataInfo<SysJ
 }
 
 // 删除调度日志
-export function delJobLog(jobLogId: number | number[]): Promise<AjaxResult> {
+export function delJobLog(jobLogId: string | string[]): Promise<AjaxResult> {
   return request({
     url: '/monitor/jobLog/' + jobLogId,
     method: 'delete'
@@ -25,4 +25,3 @@ export function cleanJobLog(): Promise<AjaxResult> {
     method: 'delete'
   })
 }
-

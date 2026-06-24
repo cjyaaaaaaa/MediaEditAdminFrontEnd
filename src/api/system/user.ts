@@ -12,7 +12,7 @@ export function listUser(query: UserQueryParams): Promise<TableDataInfo<SysUser[
 }
 
 // 查询用户详细
-export function getUser(userId?: number): Promise<UserFormDataResult> {
+export function getUser(userId?: string): Promise<UserFormDataResult> {
   return request({
     url: '/system/user/' + parseStrEmpty(userId),
     method: 'get'
@@ -38,7 +38,7 @@ export function updateUser(data: SysUser): Promise<AjaxResult> {
 }
 
 // 删除用户
-export function delUser(userId: number | number[]): Promise<AjaxResult> {
+export function delUser(userId: string | string[]): Promise<AjaxResult> {
   return request({
     url: '/system/user/' + userId,
     method: 'delete'
@@ -46,7 +46,7 @@ export function delUser(userId: number | number[]): Promise<AjaxResult> {
 }
 
 // 用户密码重置
-export function resetUserPwd(userId: number, password: string): Promise<AjaxResult> {
+export function resetUserPwd(userId: string, password: string): Promise<AjaxResult> {
   const data = {
     userId,
     password
@@ -59,7 +59,7 @@ export function resetUserPwd(userId: number, password: string): Promise<AjaxResu
 }
 
 // 用户状态修改
-export function changeUserStatus(userId: number, status: string): Promise<AjaxResult> {
+export function changeUserStatus(userId: string, status: string): Promise<AjaxResult> {
   const data = {
     userId,
     status
@@ -112,7 +112,7 @@ export function uploadAvatar(data: FormData): Promise<UserProfileAvatarResult> {
 }
 
 // 查询授权角色
-export function getAuthRole(userId: number): Promise<UserAuthRoleResult> {
+export function getAuthRole(userId: string): Promise<UserAuthRoleResult> {
   return request({
     url: '/system/user/authRole/' + userId,
     method: 'get'

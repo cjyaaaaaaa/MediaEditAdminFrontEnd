@@ -13,7 +13,7 @@ export interface NoticeQueryParams extends PageDomain  {
 /** 通知公告信息 */
 export interface SysNotice extends BaseEntity {
   /** 公告编号 */
-  noticeId?: number;
+  noticeId?: string;
   /** 公告标题 */
   noticeTitle?: string;
   /** 公告类型（1通知 2公告） */

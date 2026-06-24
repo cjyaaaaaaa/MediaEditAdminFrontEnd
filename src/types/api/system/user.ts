@@ -12,7 +12,7 @@ export interface UserQueryParams extends PageDomain {
   /** 状态（0正常 1停用） */
   status?: '0' | '1';
   /** 部门编号 */
-  deptId?: number;
+  deptId?: string;
   /** 创建时间 */
   params?: {
     beginTime?: string;
@@ -23,15 +23,15 @@ export interface UserQueryParams extends PageDomain {
 /** 角色授权用户分页查询参数 */
 export interface AuthUserQueryParams extends UserQueryParams {
   /** 角色编号 */
-  roleId?: number;
+  roleId?: string;
 }
 
 /** 用户信息 */
 export interface SysUser extends BaseEntity {
   /** 用户ID */
-  userId?: number;
+  userId?: string;
   /** 部门ID */
-  deptId?: number;
+  deptId?: string;
   /** 用户账号 */
   userName?: string;
   /** 用户昵称 */
@@ -53,9 +53,9 @@ export interface SysUser extends BaseEntity {
   /** 角色对象 */
   roles?: SysRole[];
   /** 角色组 */
-  roleIds?: number[];
+  roleIds?: string[];
   /** 岗位组 */
-  postIds?: number[];
+  postIds?: string[];
 }
 
 /** 注册信息 */
@@ -75,9 +75,9 @@ export interface UserFormDataResult extends AjaxResult {
   /** 用户信息 */
   data?: SysUser
   /** 用户的岗位ID列表 */
-  postIds?: number[]
+  postIds?: string[]
   /** 用户的角色ID列表 */
-  roleIds?: number[]
+  roleIds?: string[]
   /** 所有角色列表 */
   roles: SysRole[]
   /** 所有岗位列表 */

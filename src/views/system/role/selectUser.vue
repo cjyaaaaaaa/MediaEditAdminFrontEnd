@@ -76,7 +76,7 @@ const { sys_normal_disable } = proxy.useDict("sys_normal_disable")
 const userList = ref<SysUser[]>([])
 const visible = ref<boolean>(false)
 const total = ref<number>(0)
-const userIds = ref<number[]>([])
+const userIds = ref<string[]>([])
 
 const queryParams = reactive<UserQueryParams>({
   pageNum: 1,

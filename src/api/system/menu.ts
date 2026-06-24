@@ -11,7 +11,7 @@ export function listMenu(query?: MenuQueryParams): Promise<AjaxResult<SysMenu[]>
 }
 
 // 查询菜单详细
-export function getMenu(menuId: number): Promise<AjaxResult<SysMenu>> {
+export function getMenu(menuId: string): Promise<AjaxResult<SysMenu>> {
   return request({
     url: '/system/menu/' + menuId,
     method: 'get'
@@ -27,7 +27,7 @@ export function treeselect(): Promise<AjaxResult<TreeSelect[]>> {
 }
 
 // 根据角色ID查询菜单下拉树结构
-export function roleMenuTreeselect(roleId: number): Promise<RoleMenuTreeselectResult> {
+export function roleMenuTreeselect(roleId: string): Promise<RoleMenuTreeselectResult> {
   return request({
     url: '/system/menu/roleMenuTreeselect/' + roleId,
     method: 'get'
@@ -62,7 +62,7 @@ export function updateMenuSort(data: MenuSortParams): Promise<AjaxResult> {
 }
 
 // 删除菜单
-export function delMenu(menuId: number): Promise<AjaxResult> {
+export function delMenu(menuId: string): Promise<AjaxResult> {
   return request({
     url: '/system/menu/' + menuId,
     method: 'delete'

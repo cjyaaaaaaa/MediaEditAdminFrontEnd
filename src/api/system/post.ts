@@ -11,7 +11,7 @@ export function listPost(query: PostQueryParams): Promise<TableDataInfo<SysPost[
 }
 
 // 查询岗位详细
-export function getPost(postId: number): Promise<AjaxResult<SysPost>> {
+export function getPost(postId: string): Promise<AjaxResult<SysPost>> {
   return request({
     url: '/system/post/' + postId,
     method: 'get'
@@ -37,7 +37,7 @@ export function updatePost(data: SysPost): Promise<AjaxResult> {
 }
 
 // 删除岗位
-export function delPost(postId: number | number[]): Promise<AjaxResult> {
+export function delPost(postId: string | string[]): Promise<AjaxResult> {
   return request({
     url: '/system/post/' + postId,
     method: 'delete'

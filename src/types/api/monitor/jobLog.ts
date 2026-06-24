@@ -18,7 +18,7 @@ export interface JobLogQueryParams extends PageDomain {
 /** 定时任务日志信息 */
 export interface SysJobLog extends BaseEntity {
   /** 任务日志编号 */
-  jobLogId?: number;
+  jobLogId?: string;
   /** 任务名称 */
   jobName?: string;
   /** 任务组名 */

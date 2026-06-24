@@ -2,8 +2,8 @@ import request from '@/utils/request'
 import type { AjaxResult, TableDataInfo } from '@/types'
 
 export interface AiModel {
-  modelId?: number
-  platformId?: number
+  modelId?: string
+  platformId?: string
   platformName?: string
   platformCode?: number
   modelCode?: number
@@ -19,7 +19,7 @@ export interface AiModel {
 export interface AiModelQuery {
   pageNum?: number
   pageSize?: number
-  platformId?: number
+  platformId?: string
   platformCode?: number
   modelCode?: number
   modelName?: string
@@ -34,7 +34,7 @@ export function listModel(query: AiModelQuery): Promise<TableDataInfo<AiModel[]>
   })
 }
 
-export function getModel(modelId: number): Promise<AjaxResult<AiModel>> {
+export function getModel(modelId: string): Promise<AjaxResult<AiModel>> {
   return request({
     url: '/system/ai/model/' + modelId,
     method: 'get'
@@ -57,7 +57,7 @@ export function updateModel(data: AiModel): Promise<AjaxResult> {
   })
 }
 
-export function delModel(modelId: number | number[]): Promise<AjaxResult> {
+export function delModel(modelId: string | string[]): Promise<AjaxResult> {
   return request({
     url: '/system/ai/model/' + modelId,
     method: 'delete'

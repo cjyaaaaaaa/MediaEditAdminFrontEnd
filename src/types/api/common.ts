@@ -55,7 +55,7 @@ export interface BaseEntity {
 /** Treeselect树结构类型 */
 export interface TreeSelect {
   /** 节点ID */
-  id?: number
+  id?: string
   /** 节点名称 */
   label?: string
   /** 节点禁用 */

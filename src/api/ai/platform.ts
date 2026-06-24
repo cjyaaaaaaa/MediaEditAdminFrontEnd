@@ -2,7 +2,7 @@ import request from '@/utils/request'
 import type { AjaxResult, TableDataInfo } from '@/types'
 
 export interface AiPlatform {
-  platformId?: number
+  platformId?: string
   platformCode?: number
   platformName?: string
   configJson?: string
@@ -27,7 +27,7 @@ export function listPlatform(query: AiPlatformQuery): Promise<TableDataInfo<AiPl
   })
 }
 
-export function getPlatform(platformId: number): Promise<AjaxResult<AiPlatform>> {
+export function getPlatform(platformId: string): Promise<AjaxResult<AiPlatform>> {
   return request({
     url: '/system/ai/platform/' + platformId,
     method: 'get'
@@ -50,7 +50,7 @@ export function updatePlatform(data: AiPlatform): Promise<AjaxResult> {
   })
 }
 
-export function delPlatform(platformId: number | number[]): Promise<AjaxResult> {
+export function delPlatform(platformId: string | string[]): Promise<AjaxResult> {
   return request({
     url: '/system/ai/platform/' + platformId,
     method: 'delete'

@@ -11,7 +11,7 @@ export function listConfig(query: ConfigQueryParams): Promise<TableDataInfo<SysC
 }
 
 // 查询参数详细
-export function getConfig(configId: number): Promise<AjaxResult<SysConfig>> {
+export function getConfig(configId: string): Promise<AjaxResult<SysConfig>> {
   return request({
     url: '/system/config/' + configId,
     method: 'get'
@@ -45,7 +45,7 @@ export function updateConfig(data: SysConfig): Promise<AjaxResult> {
 }
 
 // 删除参数配置
-export function delConfig(configId: number | number[]): Promise<AjaxResult> {
+export function delConfig(configId: string | string[]): Promise<AjaxResult> {
   return request({
     url: '/system/config/' + configId,
     method: 'delete'

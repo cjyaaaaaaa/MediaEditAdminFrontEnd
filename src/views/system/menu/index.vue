@@ -354,7 +354,7 @@ function getList() {
 function getTreeselect() {
   menuOptions.value = []
   listMenu().then(response => {
-    const menu = { menuId: 0, menuName: "主类目", children: [] }
+    const menu = { menuId: '0', menuName: "主类目", children: [] }
     menu.children = proxy.handleTree(response.data, "menuId")
     menuOptions.value.push(menu)
   })
@@ -470,7 +470,7 @@ function recordOriginalOrders(list: SysMenu[]) {
 
 /** 保存排序 */
 function handleSaveSort() {
-  const changedMenuIds: number[] = []
+  const changedMenuIds: string[] = []
   const changedOrderNums: number[] = []
   const collectChanged = (list: SysMenu[]) => {
     list.forEach(item => {

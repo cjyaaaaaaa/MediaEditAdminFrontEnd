@@ -30,7 +30,7 @@ export interface DictDataQueryParams extends PageDomain {
 /** 字典类型信息 */
 export interface SysDictType extends BaseEntity {
   /** 字典编号 */
-  dictId?: number;
+  dictId?: string;
   /** 字典名称 */
   dictName?: string;
   /** 字典类型 */
@@ -42,7 +42,7 @@ export interface SysDictType extends BaseEntity {
 /** 字典数据信息 */
 export interface SysDictData extends BaseEntity {
   /** 字典编码 */
-  dictCode?: number;
+  dictCode?: string;
   /** 字典标签 */
   dictLabel?: string;
   /** 字典键值 */

@@ -17,31 +17,31 @@ export interface RoleQueryParams extends PageDomain {
 
 /** 批量授权用户参数 */
 export interface AuthUserSelectParams {
-  roleId: number;
-  userIds: number[];
+  roleId: string;
+  userIds: string[];
 }
 
 /** 用户和角色关联信息 */
 export interface SysUserRole {
   /** 用户编号 */
-  userId?: number;
+  userId?: string;
   /** 角色编号 */
-  roleId: number;
+  roleId: string;
 }
 
 /** 用户和多角色关联信息 */
 export interface SysUserRoles {
   /** 用户编号 */
-  userId?: number;
+  userId?: string;
   /** 角色编号组 */
-  roleIds?: number[];
+  roleIds?: string[];
 }
 
 
 /** 角色信息 */
 export interface SysRole extends BaseEntity {
   /** 角色编号 */
-  roleId?: number;
+  roleId?: string;
   /** 角色名称 */
   roleName?: string;
   /** 角色权限 */
@@ -55,9 +55,9 @@ export interface SysRole extends BaseEntity {
   /** 部门树选择项是否关联显示 */
   deptCheckStrictly?: boolean;
   /** 角色权限 */
-  menuIds?: number[];
+  menuIds?: string[];
   /** 角色权限 */
-  deptIds?: number[];
+  deptIds?: string[];
   /** 状态（0正常 1停用） */
   status?: '0' | '1';
 }
@@ -65,7 +65,7 @@ export interface SysRole extends BaseEntity {
 /** 角色部门树响应 */
 export interface RoleDeptTreeResult extends AjaxResult {
   /** 选中部门ID */
-  checkedKeys: number[]
+  checkedKeys: string[]
   /** 部门树列表 */
   depts: TreeSelect[]
 }

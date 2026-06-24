@@ -183,7 +183,7 @@ function close(): void {
   const tableId = route.params && route.params.tableId
   if (tableId) {
     // 获取表详细信息
-    getGenTable(Number(tableId)).then(res => {
+    getGenTable(String(tableId)).then(res => {
       const data = res.data as GenTableInfoResult
       columns.value = data.rows
       info.value = data.info

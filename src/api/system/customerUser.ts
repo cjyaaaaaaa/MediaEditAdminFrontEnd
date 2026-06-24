@@ -2,7 +2,7 @@ import request from '@/utils/request'
 import type { AjaxResult, TableDataInfo } from '@/types'
 
 export interface CustomerIdentity {
-  identityId?: number
+  identityId?: string
   provider?: string
   providerUserId?: string
   email?: string
@@ -11,7 +11,7 @@ export interface CustomerIdentity {
 }
 
 export interface CustomerUser {
-  userId?: number
+  userId?: string
   userName?: string
   nickName?: string
   email?: string
@@ -27,7 +27,7 @@ export interface CustomerUser {
 export interface CustomerUserQuery {
   pageNum?: number
   pageSize?: number
-  userId?: number
+  userId?: string
   userName?: string
   nickName?: string
   email?: string
@@ -38,18 +38,22 @@ export function listCustomerUser(query: CustomerUserQuery): Promise<TableDataInf
   return request({ url: '/system/customer/user/list', method: 'get', params: query })
 }
 
-export function getCustomerUser(userId: number): Promise<AjaxResult<CustomerUser>> {
+export function getCustomerUser(userId: string): Promise<AjaxResult<CustomerUser>> {
   return request({ url: '/system/customer/user/' + userId, method: 'get' })
 }
 
-export function changeCustomerUserStatus(userId: number, status: string): Promise<AjaxResult> {
+export function changeCustomerUserStatus(userId: string, status: string): Promise<AjaxResult> {
   return request({ url: '/system/customer/user/changeStatus', method: 'put', data: { userId, status } })
 }
 
-export function resetCustomerUserPassword(userId: number, password: string): Promise<AjaxResult> {
+export function resetCustomerUserPassword(userId: string, password: string): Promise<AjaxResult> {
   return request({ url: '/system/customer/user/resetPwd', method: 'put', data: { userId, password } })
 }
 
-export function editCustomerUserCredit(data: { userId: number; amount: number; remark?: string }): Promise<AjaxResult & { creditBalance?: number }> {
+export function editCustomerUserCredit(data: { userId: string; amount: number; remark?: string }): Promise<AjaxResult & { creditBalance?: number }> {
   return request({ url: '/system/customer/user/editCredit', method: 'put', data })
+}
+
+export function deleteCustomerUser(userId: string): Promise<AjaxResult> {
+  return request({ url: '/system/customer/user/' + userId, method: 'delete' })
 }

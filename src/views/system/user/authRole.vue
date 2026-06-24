@@ -62,7 +62,7 @@ const loading = ref<boolean>(true)
 const total = ref<number>(0)
 const pageNum = ref<number>(1)
 const pageSize = ref<number>(10)
-const roleIds = ref<number[]>([])
+const roleIds = ref<string[]>([])
 const roles = ref<SysRoleWithFlag[]>([])
 const form = ref<SysUser>({
   nickName: undefined,
@@ -83,7 +83,7 @@ function handleSelectionChange(selection: SysRole[]) {
 }
 
 /** 保存选中的数据编号 */
-function getRowKey(row: SysRole): number {
+function getRowKey(row: SysRole): string {
   return row.roleId!
 }
 
@@ -109,7 +109,7 @@ function submitForm() {
 }
 
 (() => {
-  const userId = route.params && Number(route.params.userId)
+  const userId = route.params && String(route.params.userId)
   if (userId) {
     loading.value = true
     getAuthRole(userId).then(response => {

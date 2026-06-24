@@ -11,7 +11,7 @@ export function list(query: LogininforQueryParams): Promise<TableDataInfo<SysLog
 }
 
 // 删除登录日志
-export function delLogininfor(infoId: number | number[]): Promise<AjaxResult> {
+export function delLogininfor(infoId: string | string[]): Promise<AjaxResult> {
   return request({
     url: '/monitor/logininfor/' + infoId,
     method: 'delete'

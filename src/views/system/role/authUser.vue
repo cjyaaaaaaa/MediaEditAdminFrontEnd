@@ -105,7 +105,7 @@ const loading = ref<boolean>(true)
 const showSearch = ref<boolean>(true)
 const multiple = ref<boolean>(true)
 const total = ref<number>(0)
-const userIds = ref<number[]>([])
+const userIds = ref<string[]>([])
 
 const queryParams = reactive<AuthUserQueryParams>({
   pageNum: 1,

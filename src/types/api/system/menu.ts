@@ -11,9 +11,9 @@ export interface MenuQueryParams {
 /** 菜单信息 */
 export interface SysMenu extends BaseEntity {
   /** 菜单编号 */
-  menuId?: number;
+  menuId?: string;
   /** 父菜单ID */
-  parentId?: number;
+  parentId?: string;
   /** 菜单名称 */
   menuName?: string;
   /** 显示顺序 */
@@ -52,7 +52,7 @@ export interface MenuSortParams {
 
 export interface RoleMenuTreeselectResult extends AjaxResult {
   /** 已选中的菜单ID列表 */
-  checkedKeys: number[]
+  checkedKeys: string[]
   /** 菜单树形结构 */
   menus: TreeSelect[]
 }

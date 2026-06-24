@@ -2,9 +2,9 @@ import request from '@/utils/request'
 import type { TableDataInfo } from '@/types'
 
 export interface AiImageTask {
-  imageId?: number
+  imageId?: string
   traceId?: string
-  userId?: number
+  userId?: string
   userName?: string
   taskType?: string
   status?: string
@@ -15,17 +15,17 @@ export interface AiImageTask {
   height?: number
   platformCode?: number
   modelCode?: number
-  modelId?: number
+  modelId?: string
   creditCost?: number
   platformTaskId?: string
-  resultMediaId?: number
+  resultMediaId?: string
   media?: AiMediaAsset
   errorInfo?: string
   createTime?: string
 }
 
 export interface AiMediaAsset {
-  mediaId?: number
+  mediaId?: string
   mediaType?: string
   url?: string
   objectKey?: string
@@ -41,7 +41,7 @@ export interface AiMediaAsset {
 export interface ImageTaskQuery {
   pageNum?: number
   pageSize?: number
-  userId?: number
+  userId?: string
   userName?: string
   taskType?: string
   status?: string

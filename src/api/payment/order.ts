@@ -2,11 +2,11 @@ import request from '@/utils/request'
 import type { AjaxResult, TableDataInfo } from '@/types'
 
 export interface PaymentOrder {
-  orderId?: number
+  orderId?: string
   orderNo?: string
-  userId?: number
+  userId?: string
   userName?: string
-  planId?: number
+  planId?: string
   planName?: string
   planCode?: string
   billingType?: string
@@ -14,7 +14,7 @@ export interface PaymentOrder {
   currency?: string
   creditAmount?: number
   orderStatus?: string
-  subscriptionId?: number
+  subscriptionId?: string
   payTime?: string
   deliverTime?: string
   createTime?: string
@@ -26,7 +26,7 @@ export interface PaymentOrderQuery {
   pageNum?: number
   pageSize?: number
   orderNo?: string
-  userId?: number
+  userId?: string
   userName?: string
   billingType?: string
   orderStatus?: string
@@ -40,7 +40,7 @@ export function listPaymentOrder(query?: PaymentOrderQuery): Promise<TableDataIn
   })
 }
 
-export function getPaymentOrder(orderId: number): Promise<AjaxResult<PaymentOrder>> {
+export function getPaymentOrder(orderId: string): Promise<AjaxResult<PaymentOrder>> {
   return request({
     url: '/system/payment/order/' + orderId,
     method: 'get'

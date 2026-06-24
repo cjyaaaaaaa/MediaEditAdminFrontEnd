@@ -11,7 +11,7 @@ export function listJob(query: JobQueryParams): Promise<TableDataInfo<SysJob[]>>
 }
 
 // 查询定时任务调度详细
-export function getJob(jobId: number): Promise<AjaxResult<SysJob>> {
+export function getJob(jobId: string): Promise<AjaxResult<SysJob>> {
   return request({
     url: '/monitor/job/' + jobId,
     method: 'get'
@@ -37,7 +37,7 @@ export function updateJob(data: SysJob): Promise<AjaxResult> {
 }
 
 // 删除定时任务调度
-export function delJob(jobId: number | number[]): Promise<AjaxResult> {
+export function delJob(jobId: string | string[]): Promise<AjaxResult> {
   return request({
     url: '/monitor/job/' + jobId,
     method: 'delete'
@@ -45,7 +45,7 @@ export function delJob(jobId: number | number[]): Promise<AjaxResult> {
 }
 
 // 任务状态修改
-export function changeJobStatus(jobId: number, status: string): Promise<AjaxResult> {
+export function changeJobStatus(jobId: string, status: string): Promise<AjaxResult> {
   const data = {
     jobId,
     status
@@ -58,7 +58,7 @@ export function changeJobStatus(jobId: number, status: string): Promise<AjaxResu
 }
 
 // 定时任务立即执行一次
-export function runJob(jobId: number, jobGroup: string): Promise<AjaxResult> {
+export function runJob(jobId: string, jobGroup: string): Promise<AjaxResult> {
   const data = {
     jobId,
     jobGroup

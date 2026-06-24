@@ -298,7 +298,7 @@ function recordOriginalOrders(list: SysDept[]) {
 
 /** 保存排序 */
 function handleSaveSort() {
-  const changedDeptIds: number[] = []
+  const changedDeptIds: string[] = []
   const changedOrderNums: number[] = []
   const collectChanged = (list: SysDept[]) => {
     list.forEach(item => {

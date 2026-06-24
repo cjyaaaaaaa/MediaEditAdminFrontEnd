@@ -2,10 +2,10 @@ import request from '@/utils/request'
 import type { AjaxResult, TableDataInfo } from '@/types'
 
 export interface AiImageTemplate {
-  templateId?: number
-  categoryId?: number
+  templateId?: string
+  categoryId?: string
   categoryName?: string
-  userId?: number
+  userId?: string
   userName?: string
   templateName?: string
   sourceType?: string
@@ -29,7 +29,7 @@ export interface AiImageTemplate {
 export interface TemplateQuery {
   pageNum?: number
   pageSize?: number
-  categoryId?: number
+  categoryId?: string
   keyword?: string
   sourceType?: string
   auditStatus?: string
@@ -45,7 +45,7 @@ export function listTemplate(query: TemplateQuery): Promise<TableDataInfo<AiImag
   })
 }
 
-export function getTemplate(templateId: number): Promise<AjaxResult<AiImageTemplate>> {
+export function getTemplate(templateId: string): Promise<AjaxResult<AiImageTemplate>> {
   return request({
     url: '/system/ai/template/' + templateId,
     method: 'get'
@@ -76,7 +76,7 @@ export function auditTemplate(data: AiImageTemplate): Promise<AjaxResult> {
   })
 }
 
-export function delTemplate(templateId: number | number[]): Promise<AjaxResult> {
+export function delTemplate(templateId: string | string[]): Promise<AjaxResult> {
   return request({
     url: '/system/ai/template/' + templateId,
     method: 'delete'

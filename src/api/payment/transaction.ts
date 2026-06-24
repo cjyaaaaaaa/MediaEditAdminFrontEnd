@@ -2,12 +2,12 @@ import request from '@/utils/request'
 import type { AjaxResult, TableDataInfo } from '@/types'
 
 export interface PaymentTransaction {
-  transactionId?: number
-  orderId?: number
+  transactionId?: string
+  orderId?: string
   orderNo?: string
   paymentProvider?: string
   paymentMode?: string
-  planProviderId?: number
+  planProviderId?: string
   providerCheckoutId?: string
   providerOrderId?: string
   providerCustomerId?: string
@@ -42,7 +42,7 @@ export function listPaymentTransaction(query?: PaymentTransactionQuery): Promise
   })
 }
 
-export function getPaymentTransaction(transactionId: number): Promise<AjaxResult<PaymentTransaction>> {
+export function getPaymentTransaction(transactionId: string): Promise<AjaxResult<PaymentTransaction>> {
   return request({
     url: '/system/payment/transaction/' + transactionId,
     method: 'get'

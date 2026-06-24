@@ -2,10 +2,10 @@ import request from '@/utils/request'
 import type { AjaxResult, TableDataInfo } from '@/types'
 
 export interface UserSubscription {
-  subscriptionId?: number
-  userId?: number
+  subscriptionId?: string
+  userId?: string
   userName?: string
-  planId?: number
+  planId?: string
   planName?: string
   planCode?: string
   paymentProvider?: string
@@ -25,7 +25,7 @@ export interface UserSubscription {
 export interface UserSubscriptionQuery {
   pageNum?: number
   pageSize?: number
-  userId?: number
+  userId?: string
   userName?: string
   paymentProvider?: string
   providerSubscriptionId?: string
@@ -40,7 +40,7 @@ export function listUserSubscription(query?: UserSubscriptionQuery): Promise<Tab
   })
 }
 
-export function getUserSubscription(subscriptionId: number): Promise<AjaxResult<UserSubscription>> {
+export function getUserSubscription(subscriptionId: string): Promise<AjaxResult<UserSubscription>> {
   return request({
     url: '/system/payment/subscription/' + subscriptionId,
     method: 'get'

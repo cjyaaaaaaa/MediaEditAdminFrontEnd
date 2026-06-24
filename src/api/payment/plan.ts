@@ -2,8 +2,8 @@ import request from '@/utils/request'
 import type { AjaxResult, TableDataInfo } from '@/types'
 
 export interface PaymentPlanProvider {
-  planProviderId?: number
-  planId?: number
+  planProviderId?: string
+  planId?: string
   paymentProvider?: string
   providerProductId?: string
   providerPriceId?: string
@@ -13,7 +13,7 @@ export interface PaymentPlanProvider {
 }
 
 export interface PaymentPlan {
-  planId?: number
+  planId?: string
   planName?: string
   planCode?: string
   billingType?: string
@@ -45,7 +45,7 @@ export function listPaymentPlan(query?: PaymentPlanQuery): Promise<TableDataInfo
   })
 }
 
-export function getPaymentPlan(planId: number): Promise<AjaxResult<PaymentPlan>> {
+export function getPaymentPlan(planId: string): Promise<AjaxResult<PaymentPlan>> {
   return request({
     url: '/system/payment/plan/' + planId,
     method: 'get'
@@ -68,7 +68,7 @@ export function updatePaymentPlan(data: PaymentPlan): Promise<AjaxResult> {
   })
 }
 
-export function delPaymentPlan(planId: number | number[]): Promise<AjaxResult> {
+export function delPaymentPlan(planId: string | string[]): Promise<AjaxResult> {
   return request({
     url: '/system/payment/plan/' + planId,
     method: 'delete'

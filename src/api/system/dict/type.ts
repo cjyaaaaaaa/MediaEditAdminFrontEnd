@@ -11,7 +11,7 @@ export function listType(query: DictTypeQueryParams): Promise<TableDataInfo<SysD
 }
 
 // 查询字典类型详细
-export function getType(dictId: number): Promise<AjaxResult<SysDictType>> {
+export function getType(dictId: string): Promise<AjaxResult<SysDictType>> {
   return request({
     url: '/system/dict/type/' + dictId,
     method: 'get'
@@ -37,7 +37,7 @@ export function updateType(data: SysDictType): Promise<AjaxResult> {
 }
 
 // 删除字典类型
-export function delType(dictId: number | number[]): Promise<AjaxResult> {
+export function delType(dictId: string | string[]): Promise<AjaxResult> {
   return request({
     url: '/system/dict/type/' + dictId,
     method: 'delete'

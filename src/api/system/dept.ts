@@ -11,7 +11,7 @@ export function listDept(query?: DeptQueryParams): Promise<AjaxResult<SysDept[]>
 }
 
 // 查询部门列表（排除节点）
-export function listDeptExcludeChild(deptId: number): Promise<AjaxResult<SysDept[]>> {
+export function listDeptExcludeChild(deptId: string): Promise<AjaxResult<SysDept[]>> {
   return request({
     url: '/system/dept/list/exclude/' + deptId,
     method: 'get'
@@ -19,7 +19,7 @@ export function listDeptExcludeChild(deptId: number): Promise<AjaxResult<SysDept
 }
 
 // 查询部门详细
-export function getDept(deptId: number): Promise<AjaxResult<SysDept>> {
+export function getDept(deptId: string): Promise<AjaxResult<SysDept>> {
   return request({
     url: '/system/dept/' + deptId,
     method: 'get'
@@ -54,7 +54,7 @@ export function updateDeptSort(data: DeptSortParams): Promise<AjaxResult> {
 }
 
 // 删除部门
-export function delDept(deptId: number): Promise<AjaxResult> {
+export function delDept(deptId: string): Promise<AjaxResult> {
   return request({
     url: '/system/dept/' + deptId,
     method: 'delete'

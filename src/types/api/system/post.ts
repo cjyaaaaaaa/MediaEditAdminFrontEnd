@@ -13,7 +13,7 @@ export interface PostQueryParams extends PageDomain {
 /** 岗位信息 */
 export interface SysPost extends BaseEntity {
   /** 岗位编号 */
-  postId?: number;
+  postId?: string;
   /** 岗位编码 */
   postCode?: string;
   /** 岗位名称 */

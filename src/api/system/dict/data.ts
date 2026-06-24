@@ -11,7 +11,7 @@ export function listData(query: DictDataQueryParams): Promise<TableDataInfo<SysD
 }
 
 // 查询字典数据详细
-export function getData(dictCode: number): Promise<AjaxResult<SysDictData>> {
+export function getData(dictCode: string): Promise<AjaxResult<SysDictData>> {
   return request({
     url: '/system/dict/data/' + dictCode,
     method: 'get'
@@ -45,7 +45,7 @@ export function updateData(data: SysDictData): Promise<AjaxResult> {
 }
 
 // 删除字典数据
-export function delData(dictCode: number | number[]): Promise<AjaxResult> {
+export function delData(dictCode: string | string[]): Promise<AjaxResult> {
   return request({
     url: '/system/dict/data/' + dictCode,
     method: 'delete'

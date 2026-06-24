@@ -193,7 +193,7 @@ const dataList = ref<SysDictData[]>([])
 const open = ref<boolean>(false)
 const loading = ref<boolean>(true)
 const showSearch = ref<boolean>(true)
-const ids = ref<number[]>([])
+const ids = ref<string[]>([])
 const single = ref<boolean>(true)
 const multiple = ref<boolean>(true)
 const total = ref<number>(0)
@@ -230,7 +230,7 @@ const data = reactive({
 const { queryParams, form, rules } = toRefs(data)
 
 /** 查询字典类型详细 */
-function getTypes(dictId: number) {
+function getTypes(dictId: string) {
   getType(dictId).then(response => {
     queryParams.value.dictType = response.data!.dictType
     defaultDictType.value = response.data!.dictType!
@@ -363,6 +363,6 @@ function handleExport() {
   }, `dict_data_${new Date().getTime()}.xlsx`)
 }
 
-getTypes(route.params && Number(route.params.dictId))
+getTypes(route.params && String(route.params.dictId))
 getTypeList()
 </script>

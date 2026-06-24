@@ -18,7 +18,7 @@ export interface ConfigQueryParams extends PageDomain {
 /** 参数配置信息 */
 export interface SysConfig extends BaseEntity {
   /** 参数编号 */
-  configId?: number;
+  configId?: string;
   /** 参数名称 */
   configName?: string;
   /** 参数键名 */

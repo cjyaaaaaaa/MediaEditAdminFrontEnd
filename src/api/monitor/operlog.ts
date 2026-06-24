@@ -11,7 +11,7 @@ export function list(query: OperlogQueryParams): Promise<TableDataInfo<SysOperLo
 }
 
 // 删除操作日志
-export function delOperlog(operId: number | number[]): Promise<AjaxResult> {
+export function delOperlog(operId: string | string[]): Promise<AjaxResult> {
   return request({
     url: '/monitor/operlog/' + operId,
     method: 'delete'

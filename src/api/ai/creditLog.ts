@@ -2,10 +2,10 @@ import request from '@/utils/request'
 import type { TableDataInfo } from '@/types'
 
 export interface UserCreditLog {
-  logId?: number
-  userId?: number
+  logId?: string
+  userId?: string
   userName?: string
-  modelId?: number
+  modelId?: string
   modelName?: string
   changeAmount?: number
   balanceAfter?: number
@@ -17,7 +17,7 @@ export interface UserCreditLog {
 export interface CreditLogQuery {
   pageNum?: number
   pageSize?: number
-  userId?: number
+  userId?: string
   userName?: string
   bizType?: string
 }

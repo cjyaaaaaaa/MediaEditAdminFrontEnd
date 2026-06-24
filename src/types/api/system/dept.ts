@@ -17,9 +17,9 @@ export interface DeptSortParams {
 /** 部门信息 */
 export interface SysDept extends BaseEntity {
   /** 部门编号 */
-  deptId?: number;
+  deptId?: string;
   /** 父部门ID */
-  parentId?: number;
+  parentId?: string;
   /** 祖级列表 */
   ancestors?: string;
   /** 部门名称 */

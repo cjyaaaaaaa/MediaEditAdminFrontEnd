@@ -2,7 +2,7 @@ import request from '@/utils/request'
 import type { AjaxResult, TableDataInfo } from '@/types'
 
 export interface AiTemplateCategory {
-  categoryId?: number
+  categoryId?: string
   categoryName?: string
   categoryCode?: string
   sortOrder?: number
@@ -27,7 +27,7 @@ export function listTemplateCategory(query?: TemplateCategoryQuery): Promise<Tab
   })
 }
 
-export function getTemplateCategory(categoryId: number): Promise<AjaxResult<AiTemplateCategory>> {
+export function getTemplateCategory(categoryId: string): Promise<AjaxResult<AiTemplateCategory>> {
   return request({
     url: '/system/ai/template/category/' + categoryId,
     method: 'get'
@@ -50,7 +50,7 @@ export function updateTemplateCategory(data: AiTemplateCategory): Promise<AjaxRe
   })
 }
 
-export function delTemplateCategory(categoryId: number | number[]): Promise<AjaxResult> {
+export function delTemplateCategory(categoryId: string | string[]): Promise<AjaxResult> {
   return request({
     url: '/system/ai/template/category/' + categoryId,
     method: 'delete'

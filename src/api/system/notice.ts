@@ -11,7 +11,7 @@ export function listNotice(query: NoticeQueryParams): Promise<TableDataInfo<SysN
 }
 
 // 查询公告详细
-export function getNotice(noticeId: number): Promise<AjaxResult<SysNotice>> {
+export function getNotice(noticeId: string): Promise<AjaxResult<SysNotice>> {
   return request({
     url: '/system/notice/' + noticeId,
     method: 'get'
@@ -37,7 +37,7 @@ export function updateNotice(data: SysNotice): Promise<AjaxResult> {
 }
 
 // 删除公告
-export function delNotice(noticeId: number | number[]): Promise<AjaxResult> {
+export function delNotice(noticeId: string | string[]): Promise<AjaxResult> {
   return request({
     url: '/system/notice/' + noticeId,
     method: 'delete'
@@ -53,7 +53,7 @@ export function listNoticeTop(): Promise<SysNoticeTopResult> {
 }
 
 // 标记公告已读
-export function markNoticeRead(noticeId: number): Promise<AjaxResult> {
+export function markNoticeRead(noticeId: string): Promise<AjaxResult> {
   return request({
     url: '/system/notice/markRead',
     method: 'post',
