@@ -50,7 +50,14 @@
         </template>
       </el-table-column>
       <el-table-column label="模型名称" align="center" prop="modelName" />
-      <el-table-column label="消耗积分" align="center" prop="creditCost" width="90" />
+      <el-table-column label="计费方式 / 价格" align="center" prop="billingType" min-width="160">
+        <template #default="scope">
+          <div>
+            <el-tag size="small" type="info">{{ getBillingTypeInfo(scope.row.billingType) }}</el-tag>
+          </div>
+          <div class="credit-config-text">{{ formatCreditConfig(scope.row.billingType, scope.row.creditConfig) }}</div>
+        </template>
+      </el-table-column>
       <el-table-column label="API地址" align="center" prop="apiUrl" show-overflow-tooltip />
       <el-table-column label="状态" align="center" prop="status" width="90">
         <template #default="scope">
@@ -67,7 +74,7 @@
 
     <pagination v-show="total > 0" :total="total" v-model:page="queryParams.pageNum" v-model:limit="queryParams.pageSize" @pagination="getList" />
 
-    <el-dialog :title="title" v-model="open" width="680px" append-to-body>
+    <el-dialog :title="title" v-model="open" width="720px" append-to-body>
       <el-form ref="modelRef" :model="form" :rules="rules" label-width="100px">
         <el-form-item label="所属平台" prop="platformId">
           <el-select v-model="form.platformId" placeholder="请选择平台" style="width: 100%" @change="handlePlatformChange">
@@ -90,8 +97,91 @@
         <el-form-item label="API地址" prop="apiUrl">
           <el-input v-model="form.apiUrl" placeholder="完整 API URL" />
         </el-form-item>
-        <el-form-item label="消耗积分" prop="creditCost">
-          <el-input-number v-model="form.creditCost" controls-position="right" :min="0" />
+        <el-form-item label="计费方式" prop="billingType">
+          <el-select v-model="form.billingType" placeholder="请选择计费方式" style="width: 100%">
+            <el-option v-for="item in billingTypeList" :key="item.code" :label="item.info" :value="item.code" />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="价格配置" prop="creditConfig">
+          <div v-if="!form.billingType" class="text-gray-400">
+            请先选择计费方式
+          </div>
+
+          <!-- 按秒计费 -->
+          <div v-else-if="form.billingType === 'per_second'">
+            <el-form-item label="每秒价格" label-width="80px">
+              <el-input-number v-model="creditConfigData.per_second.credit_per_second" :min="0" :precision="0" style="width: 200px" />
+              <span class="ml-2">credit/秒</span>
+            </el-form-item>
+          </div>
+
+          <!-- 按分辨率计费 -->
+          <div v-else-if="form.billingType === 'per_resolution'" class="resolution-pricing">
+            <el-row :gutter="10">
+              <el-col :span="12">
+                <div class="pricing-item">
+                  <span class="resolution-label">480p:</span>
+                  <el-input-number v-model="creditConfigData.per_resolution['480p'].credit_per_second" :min="0" :precision="0" size="small" />
+                  <span class="credit-unit">credit/秒</span>
+                </div>
+              </el-col>
+              <el-col :span="12">
+                <div class="pricing-item">
+                  <span class="resolution-label">540p:</span>
+                  <el-input-number v-model="creditConfigData.per_resolution['540p'].credit_per_second" :min="0" :precision="0" size="small" />
+                  <span class="credit-unit">credit/秒</span>
+                </div>
+              </el-col>
+            </el-row>
+            <el-row :gutter="10" style="margin-top: 10px">
+              <el-col :span="12">
+                <div class="pricing-item">
+                  <span class="resolution-label">720p:</span>
+                  <el-input-number v-model="creditConfigData.per_resolution['720p'].credit_per_second" :min="0" :precision="0" size="small" />
+                  <span class="credit-unit">credit/秒</span>
+                </div>
+              </el-col>
+              <el-col :span="12">
+                <div class="pricing-item">
+                  <span class="resolution-label">1080p:</span>
+                  <el-input-number v-model="creditConfigData.per_resolution['1080p'].credit_per_second" :min="0" :precision="0" size="small" />
+                  <span class="credit-unit">credit/秒</span>
+                </div>
+              </el-col>
+            </el-row>
+            <el-row :gutter="10" style="margin-top: 10px">
+              <el-col :span="12">
+                <div class="pricing-item">
+                  <span class="resolution-label">2k:</span>
+                  <el-input-number v-model="creditConfigData.per_resolution['2k'].credit_per_second" :min="0" :precision="0" size="small" />
+                  <span class="credit-unit">credit/秒</span>
+                </div>
+              </el-col>
+              <el-col :span="12">
+                <div class="pricing-item">
+                  <span class="resolution-label">4k:</span>
+                  <el-input-number v-model="creditConfigData.per_resolution['4k'].credit_per_second" :min="0" :precision="0" size="small" />
+                  <span class="credit-unit">credit/秒</span>
+                </div>
+              </el-col>
+            </el-row>
+          </div>
+
+          <!-- 按单次任务计费 -->
+          <div v-else-if="form.billingType === 'per_task'">
+            <el-form-item label="每次任务价格" label-width="100px">
+              <el-input-number v-model="creditConfigData.per_task.credit_per_task" :min="0" :precision="0" style="width: 200px" />
+              <span class="ml-2">credit/次</span>
+            </el-form-item>
+          </div>
+
+          <!-- 按每张计费 -->
+          <div v-else-if="form.billingType === 'per_picture'">
+            <el-form-item label="每张价格" label-width="80px">
+              <el-input-number v-model="creditConfigData.per_picture.credit_per_picture" :min="0" :precision="0" style="width: 200px" />
+              <span class="ml-2">credit/张</span>
+            </el-form-item>
+          </div>
         </el-form-item>
         <el-form-item label="配置JSON" prop="configJson">
           <el-input v-model="form.configJson" type="textarea" :rows="3" placeholder='{"enableSyncMode":true,"enableBase64Output":false}' />
@@ -122,7 +212,7 @@
 import { listModel, getModel, addModel, updateModel, delModel } from '@/api/ai/model'
 import { optionselectPlatform } from '@/api/ai/platform'
 import { listAiEnums } from '@/api/ai/enums'
-import { AI_MODEL_OPTIONS, AiModelEnum, getModelName } from '@/constants/ai'
+import { AI_MODEL_OPTIONS, AI_BILLING_TYPES, AiModelEnum, getModelName, getBillingTypeInfo, formatCreditConfig } from '@/constants/ai'
 import type { AiModelEnumOption } from '@/constants/ai'
 import type { AiModel, AiModelQuery } from '@/api/ai/model'
 import type { AiPlatform } from '@/api/ai/platform'
@@ -133,6 +223,7 @@ const { sys_normal_disable } = proxy.useDict('sys_normal_disable')
 const modelList = ref<AiModel[]>([])
 const platformOptions = ref<AiPlatform[]>([])
 const modelEnumOptions = ref<AiModelEnumOption[]>([...AI_MODEL_OPTIONS])
+const billingTypeList = AI_BILLING_TYPES
 const selectedModelKey = ref('')
 const open = ref(false)
 const loading = ref(true)
@@ -142,6 +233,20 @@ const single = ref(true)
 const multiple = ref(true)
 const total = ref(0)
 const title = ref('')
+
+const creditConfigData = reactive({
+  per_picture: { credit_per_picture: 0 },
+  per_second: { credit_per_second: 0 },
+  per_resolution: {
+    '480p': { credit_per_second: 0 },
+    '540p': { credit_per_second: 0 },
+    '720p': { credit_per_second: 0 },
+    '1080p': { credit_per_second: 0 },
+    '2k': { credit_per_second: 0 },
+    '4k': { credit_per_second: 0 },
+  },
+  per_task: { credit_per_task: 0 },
+})
 
 const filteredModelEnumOptions = computed(() => {
   const platform = platformOptions.value.find(item => item.platformId === form.value.platformId)
@@ -165,7 +270,8 @@ const data = reactive({
     modelCode: [{ required: true, message: '请选择模型', trigger: 'change' }],
     modelName: [{ required: true, message: '模型名称不能为空', trigger: 'blur' }],
     apiUrl: [{ required: true, message: 'API地址不能为空', trigger: 'blur' }],
-    creditCost: [{ required: true, message: '消耗积分不能为空', trigger: 'blur' }]
+    billingType: [{ required: true, message: '请选择计费方式', trigger: 'change' }],
+    creditConfig: [{ required: true, message: '请配置价格', trigger: 'blur' }],
   }
 })
 
@@ -201,6 +307,46 @@ function syncSelectedModelKey() {
   } else {
     selectedModelKey.value = ''
   }
+}
+
+function resetCreditConfigData() {
+  creditConfigData.per_picture.credit_per_picture = 0
+  creditConfigData.per_second.credit_per_second = 0
+  creditConfigData.per_resolution['480p'].credit_per_second = 0
+  creditConfigData.per_resolution['540p'].credit_per_second = 0
+  creditConfigData.per_resolution['720p'].credit_per_second = 0
+  creditConfigData.per_resolution['1080p'].credit_per_second = 0
+  creditConfigData.per_resolution['2k'].credit_per_second = 0
+  creditConfigData.per_resolution['4k'].credit_per_second = 0
+  creditConfigData.per_task.credit_per_task = 0
+}
+
+function parseCreditConfig(billingType: string | undefined, creditConfig: string | undefined) {
+  if (!billingType || !creditConfig) return
+  try {
+    const parsed = JSON.parse(creditConfig)
+    const typeData = parsed[billingType]
+    if (!typeData) return
+    if (billingType === 'per_picture' && typeData.credit_per_picture != null) {
+      creditConfigData.per_picture.credit_per_picture = typeData.credit_per_picture
+    } else if (billingType === 'per_second' && typeData.credit_per_second != null) {
+      creditConfigData.per_second.credit_per_second = typeData.credit_per_second
+    } else if (billingType === 'per_task' && typeData.credit_per_task != null) {
+      creditConfigData.per_task.credit_per_task = typeData.credit_per_task
+    } else if (billingType === 'per_resolution') {
+      for (const res of ['480p', '540p', '720p', '1080p', '2k', '4k'] as const) {
+        if (typeData[res]?.credit_per_second != null) {
+          creditConfigData.per_resolution[res].credit_per_second = typeData[res].credit_per_second
+        }
+      }
+    }
+  } catch (_) {}
+}
+
+function buildCreditConfig(): string {
+  const billingType = form.value.billingType
+  if (!billingType) return ''
+  return JSON.stringify({ [billingType]: (creditConfigData as any)[billingType] })
 }
 
 function loadPlatforms() {
@@ -239,13 +385,15 @@ function reset() {
     modelCode: AiModelEnum.SEEDREAM_V4_5.modelCode,
     modelName: AiModelEnum.SEEDREAM_V4_5.modelName,
     apiUrl: undefined,
-    creditCost: 10,
+    billingType: undefined,
+    creditConfig: undefined,
     configJson: '{"enableSyncMode":true,"enableBase64Output":false}',
     sortOrder: 0,
     status: '0',
     remark: undefined
   }
   selectedModelKey.value = modelEnumKey(AiModelEnum.SEEDREAM_V4_5)
+  resetCreditConfigData()
   proxy.resetForm('modelRef')
 }
 
@@ -277,12 +425,15 @@ function handleUpdate(row?: AiModel) {
   getModel(modelId).then(response => {
     form.value = response.data!
     syncSelectedModelKey()
+    resetCreditConfigData()
+    parseCreditConfig(form.value.billingType, form.value.creditConfig)
     open.value = true
     title.value = '修改模型'
   })
 }
 
 function submitForm() {
+  form.value.creditConfig = buildCreditConfig()
   proxy.$refs['modelRef'].validate((valid: boolean) => {
     if (!valid) return
     const action = form.value.modelId ? updateModel(form.value) : addModel(form.value)
@@ -308,3 +459,27 @@ loadEnums()
 loadPlatforms()
 getList()
 </script>
+
+<style scoped>
+.resolution-pricing .pricing-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+.resolution-pricing .resolution-label {
+  width: 50px;
+  font-size: 13px;
+  color: #606266;
+}
+.resolution-pricing .credit-unit {
+  font-size: 12px;
+  color: #909399;
+  white-space: nowrap;
+}
+.credit-config-text {
+  font-size: 12px;
+  color: #606266;
+  margin-top: 2px;
+}
+</style>

@@ -6,9 +6,11 @@ export interface EmailSendLog {
   site?: string
   recipient: string
   tag?: string
+  templateName?: string
+  fromAlias?: string
   requestedLocale?: string
   actualLocale?: string
-  trackingTags?: string
+  trackingTags?: string[]
   sendStatus: string
   errorMessage?: string
   sentTime?: string

@@ -12,15 +12,20 @@ export interface CustomerIdentity {
 
 export interface CustomerUser {
   userId?: string
+  site?: string
   userName?: string
-  nickName?: string
   email?: string
   phonenumber?: string
+  sex?: string
   avatar?: string
+  emailVerified?: string
+  passwordLoginEnabled?: string
   creditBalance?: number
   status?: string
+  loginIp?: string
   loginDate?: string
   createTime?: string
+  remark?: string
   identities?: CustomerIdentity[]
 }
 
@@ -28,8 +33,8 @@ export interface CustomerUserQuery {
   pageNum?: number
   pageSize?: number
   userId?: string
+  site?: string
   userName?: string
-  nickName?: string
   email?: string
   status?: string
 }

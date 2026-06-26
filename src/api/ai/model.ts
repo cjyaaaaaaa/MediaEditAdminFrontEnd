@@ -9,7 +9,8 @@ export interface AiModel {
   modelCode?: number
   modelName?: string
   apiUrl?: string
-  creditCost?: number
+  billingType?: string
+  creditConfig?: string
   configJson?: string
   status?: string
   sortOrder?: number

@@ -55,14 +55,18 @@
 
       <el-table v-loading="loading" :data="rows">
         <el-table-column label="收件人" prop="recipient" min-width="200" show-overflow-tooltip />
+        <el-table-column label="模板" min-width="220">
+          <template #default="scope">
+            <div class="template-name">{{ scope.row.templateName || '未匹配模板' }}</div>
+            <div class="template-tag">{{ tagLabel(scope.row.tag) }}</div>
+          </template>
+        </el-table-column>
+        <el-table-column label="发件人" prop="fromAlias" min-width="140" show-overflow-tooltip />
         <el-table-column label="所属站点" min-width="140">
           <template #default="scope">
             <el-tag v-if="scope.row.site" type="info" effect="plain">{{ scope.row.site }}</el-tag>
             <el-tag v-else type="warning" effect="plain">默认站点域</el-tag>
           </template>
-        </el-table-column>
-        <el-table-column label="业务标签" min-width="160">
-          <template #default="scope">{{ tagLabel(scope.row.tag) }}</template>
         </el-table-column>
         <el-table-column label="发送状态" width="110">
           <template #default="scope">
@@ -71,23 +75,30 @@
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column label="实际语言" prop="actualLocale" width="110" />
+        <el-table-column label="语言" min-width="150">
+          <template #default="scope">{{ localeLabel(scope.row.requestedLocale, scope.row.actualLocale) }}</template>
+        </el-table-column>
+        <el-table-column label="追踪标签" min-width="180" show-overflow-tooltip>
+          <template #default="scope">
+            <span v-if="scope.row.trackingTags?.length">{{ scope.row.trackingTags.join(' / ') }}</span>
+            <span v-else>-</span>
+          </template>
+        </el-table-column>
         <el-table-column label="发送时间" width="170">
           <template #default="scope">{{ scope.row.sentTime ? parseTime(scope.row.sentTime) : '-' }}</template>
         </el-table-column>
         <el-table-column label="创建时间" width="170">
           <template #default="scope">{{ parseTime(scope.row.createTime) }}</template>
         </el-table-column>
-        <el-table-column label="操作" width="90" fixed="right">
+        <el-table-column label="操作" width="130" fixed="right">
           <template #default="scope">
             <el-button
-              v-if="scope.row.errorMessage"
               link
-              type="danger"
-              icon="Warning"
-              @click="showError(scope.row)"
+              :type="scope.row.errorMessage ? 'danger' : 'primary'"
+              :icon="scope.row.errorMessage ? 'Warning' : 'View'"
+              @click="showDetail(scope.row)"
             >
-              错误
+              详情
             </el-button>
           </template>
         </el-table-column>
@@ -98,20 +109,29 @@
       <pagination v-show="total > 0" :total="total" v-model:page="queryParams.pageNum" v-model:limit="queryParams.pageSize" @pagination="getList" />
     </el-card>
 
-    <el-dialog title="发送错误详情" v-model="errorOpen" width="640px" append-to-body>
+    <el-dialog title="发送详情" v-model="detailOpen" width="720px" append-to-body>
       <div class="error-info">
         <div class="error-meta">
           <span><b>收件人：</b>{{ currentLog?.recipient }}</span>
+          <span><b>模板：</b>{{ currentLog?.templateName || '未匹配模板' }}</span>
           <span><b>业务标签：</b>{{ tagLabel(currentLog?.tag) }}</span>
         </div>
-        <el-alert type="error" :closable="false" show-icon>
+        <div class="error-meta">
+          <span><b>发件人：</b>{{ currentLog?.fromAlias || '-' }}</span>
+          <span><b>站点：</b>{{ currentLog?.site || '默认站点域' }}</span>
+          <span><b>语言：</b>{{ localeLabel(currentLog?.requestedLocale, currentLog?.actualLocale) }}</span>
+        </div>
+        <div class="error-meta">
+          <span><b>追踪标签：</b>{{ currentLog?.trackingTags?.length ? currentLog?.trackingTags.join(' / ') : '-' }}</span>
+        </div>
+        <el-alert :type="currentLog?.errorMessage ? 'error' : 'success'" :closable="false" show-icon>
           <template #default>
-            <pre class="error-message">{{ currentLog?.errorMessage }}</pre>
+            <pre class="error-message">{{ currentLog?.errorMessage || '邮件已发送成功' }}</pre>
           </template>
         </el-alert>
       </div>
       <template #footer>
-        <el-button @click="errorOpen = false">关闭</el-button>
+        <el-button @click="detailOpen = false">关闭</el-button>
       </template>
     </el-dialog>
   </div>
@@ -131,7 +151,7 @@ const siteOptions = ref<string[]>([])
 const loading = ref(false)
 const showSearch = ref(true)
 const total = ref(0)
-const errorOpen = ref(false)
+const detailOpen = ref(false)
 const currentLog = ref<EmailSendLog | null>(null)
 const createTimeRange = ref<[string, string] | null>(null)
 
@@ -149,6 +169,12 @@ const queryParams = reactive({
 function tagLabel(tag?: string) {
   const option = tagOptions.value.find((item: EmailTemplateTagOption) => item.code === tag)
   return option ? `${option.description} · ${option.code}` : (tag || '-')
+}
+
+function localeLabel(requested?: string, actual?: string) {
+  if (!requested && !actual) return '-'
+  if (!requested || requested === actual) return actual || requested || '-'
+  return `${requested} -> ${actual || '-'}`
 }
 
 function statusType(status: string) {
@@ -190,9 +216,9 @@ function resetQuery() {
   getList()
 }
 
-function showError(row: EmailSendLog) {
+function showDetail(row: EmailSendLog) {
   currentLog.value = row
-  errorOpen.value = true
+  detailOpen.value = true
 }
 
 getEmailTemplateTags().then(response => { tagOptions.value = response.data || [] })
@@ -211,7 +237,9 @@ getList()
 .filter-actions { padding-top: 30px; }
 .table-card :deep(.el-card__body) { padding: 0 18px 18px; }
 .table-toolbar { display: flex; align-items: center; justify-content: space-between; padding: 16px 0; }
+.template-name { color: var(--el-text-color-primary); font-weight: 600; }
+.template-tag { margin-top: 4px; color: var(--el-text-color-secondary); font-size: 12px; }
 .error-info { display: flex; flex-direction: column; gap: 14px; }
-.error-meta { display: flex; gap: 24px; font-size: 14px; color: var(--el-text-color-regular); }
+.error-meta { display: flex; flex-wrap: wrap; gap: 16px 24px; font-size: 14px; color: var(--el-text-color-regular); }
 .error-message { margin: 0; font-family: monospace; font-size: 13px; white-space: pre-wrap; word-break: break-all; }
 </style>

@@ -7,8 +7,8 @@
       <el-form-item label="账号" prop="userName">
         <el-input v-model="queryParams.userName" placeholder="请输入账号" clearable @keyup.enter="handleQuery" />
       </el-form-item>
-      <el-form-item label="昵称" prop="nickName">
-        <el-input v-model="queryParams.nickName" placeholder="请输入昵称" clearable @keyup.enter="handleQuery" />
+      <el-form-item label="站点" prop="site">
+        <el-input v-model="queryParams.site" placeholder="请输入站点" clearable @keyup.enter="handleQuery" />
       </el-form-item>
       <el-form-item label="邮箱" prop="email">
         <el-input v-model="queryParams.email" placeholder="请输入邮箱" clearable @keyup.enter="handleQuery" />
@@ -31,7 +31,7 @@
     <el-table v-loading="loading" :data="userList">
       <el-table-column label="用户ID" align="center" prop="userId" width="90" />
       <el-table-column label="账号" align="center" prop="userName" min-width="150" show-overflow-tooltip />
-      <el-table-column label="昵称" align="center" prop="nickName" min-width="120" show-overflow-tooltip />
+      <el-table-column label="站点" align="center" prop="site" min-width="120" show-overflow-tooltip />
       <el-table-column label="邮箱" align="center" prop="email" min-width="180" show-overflow-tooltip />
       <el-table-column label="登录渠道" align="center" min-width="150">
         <template #default="scope">
@@ -39,6 +39,13 @@
             {{ providerLabel(identity.provider) }}
           </el-tag>
           <span v-if="!scope.row.identities?.length">-</span>
+        </template>
+      </el-table-column>
+      <el-table-column label="邮箱验证" align="center" width="90">
+        <template #default="scope">
+          <el-tag :type="scope.row.emailVerified === '1' ? 'success' : 'info'" size="small">
+            {{ scope.row.emailVerified === '1' ? '已验证' : '未验证' }}
+          </el-tag>
         </template>
       </el-table-column>
       <el-table-column label="积分" align="center" prop="creditBalance" width="90" />
@@ -66,20 +73,51 @@
 
     <pagination v-show="total > 0" :total="total" v-model:page="queryParams.pageNum" v-model:limit="queryParams.pageSize" @pagination="getList" />
 
-    <el-dialog title="客户用户详情" v-model="detailOpen" width="760px" append-to-body>
+    <el-dialog title="客户用户详情" v-model="detailOpen" width="860px" append-to-body>
       <el-descriptions :column="2" border>
         <el-descriptions-item label="用户ID">{{ detail.userId }}</el-descriptions-item>
         <el-descriptions-item label="账号">{{ detail.userName }}</el-descriptions-item>
-        <el-descriptions-item label="昵称">{{ detail.nickName }}</el-descriptions-item>
-        <el-descriptions-item label="积分">{{ detail.creditBalance }}</el-descriptions-item>
+        <el-descriptions-item label="站点">{{ detail.site || '-' }}</el-descriptions-item>
+        <el-descriptions-item label="状态">
+          <el-tag :type="detail.status === '0' ? 'success' : 'danger'" size="small">
+            {{ detail.status === '0' ? '正常' : '停用' }}
+          </el-tag>
+        </el-descriptions-item>
         <el-descriptions-item label="邮箱">{{ detail.email || '-' }}</el-descriptions-item>
+        <el-descriptions-item label="邮箱验证">
+          <el-tag :type="detail.emailVerified === '1' ? 'success' : 'info'" size="small">
+            {{ detail.emailVerified === '1' ? '已验证' : '未验证' }}
+          </el-tag>
+        </el-descriptions-item>
         <el-descriptions-item label="手机号">{{ detail.phonenumber || '-' }}</el-descriptions-item>
-        <el-descriptions-item label="状态">{{ detail.status === '0' ? '正常' : '停用' }}</el-descriptions-item>
-        <el-descriptions-item label="最后登录">{{ parseTime(detail.loginDate) || '-' }}</el-descriptions-item>
+        <el-descriptions-item label="密码登录">
+          <el-tag :type="detail.passwordLoginEnabled === '1' ? 'success' : 'info'" size="small">
+            {{ detail.passwordLoginEnabled === '1' ? '已启用' : '未启用' }}
+          </el-tag>
+        </el-descriptions-item>
+        <el-descriptions-item label="积分余额">{{ detail.creditBalance }}</el-descriptions-item>
+        <el-descriptions-item label="性别">{{ detail.sex === '0' ? '男' : detail.sex === '1' ? '女' : '未知' }}</el-descriptions-item>
+        <el-descriptions-item label="最后登录时间">{{ parseTime(detail.loginDate) || '-' }}</el-descriptions-item>
+        <el-descriptions-item label="最后登录IP">{{ detail.loginIp || '-' }}</el-descriptions-item>
+        <el-descriptions-item label="注册时间">{{ parseTime(detail.createTime) }}</el-descriptions-item>
+        <el-descriptions-item label="备注">{{ detail.remark || '-' }}</el-descriptions-item>
+        <el-descriptions-item label="头像" :span="2">
+          <template v-if="detail.avatar">
+            <el-image :src="detail.avatar" style="width:48px;height:48px;border-radius:4px" fit="cover" :preview-src-list="[detail.avatar]">
+              <template #error>
+                <div style="width:48px;height:48px;border-radius:4px;background:#f5f5f5;display:flex;align-items:center;justify-content:center;color:#ccc;font-size:12px">无法加载</div>
+              </template>
+            </el-image>
+            <div style="font-size:11px;color:#999;margin-top:2px;word-break:break-all;max-width:400px">{{ detail.avatar }}</div>
+          </template>
+          <span v-else>-</span>
+        </el-descriptions-item>
         <el-descriptions-item label="第三方身份" :span="2">
-          <div v-for="identity in detail.identities" :key="identity.identityId">
-            {{ providerLabel(identity.provider) }}：{{ identity.displayName || identity.providerUserId }}
-            <span v-if="identity.email">（{{ identity.email }}）</span>
+          <div v-for="identity in detail.identities" :key="identity.identityId" style="margin-bottom:4px">
+            <el-tag type="info" size="small" class="mr5">{{ providerLabel(identity.provider) }}</el-tag>
+            {{ identity.displayName || '-' }}
+            <span v-if="identity.email" class="ml5 text-gray">（{{ identity.email }}）</span>
+            <span v-if="identity.providerUserId" class="ml5 text-gray">ID: {{ identity.providerUserId }}</span>
           </div>
           <span v-if="!detail.identities?.length">-</span>
         </el-descriptions-item>
