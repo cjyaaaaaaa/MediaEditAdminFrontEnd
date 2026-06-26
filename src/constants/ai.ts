@@ -3,10 +3,10 @@ export const AiPlatformEnum = {
   GPTPROTO: { platformCode: 1, platformName: 'gptproto' }
 } as const
 
-/** AI 模型枚举 */
+/** AI 模型枚举（前端本地兜底，正式数据从后端拉取） */
 export const AiModelEnum = {
-  SEEDREAM_V4_5: { platformCode: 1, modelCode: 1, modelName: 'seedream_v4_5', modelInfo: '即梦 4.5 文生图' },
-  SEEDREAM_V4_5_EDIT: { platformCode: 1, modelCode: 2, modelName: 'seedream_v4_5_edit', modelInfo: '即梦 4.5 图生图' }
+  SEEDREAM_V4_5:      { platformCode: 1, modelType: 'image', modelCode: 1, modelName: 'seedream_v4_5',      modelInfo: '即梦 4.5 文生图' },
+  SEEDREAM_V4_5_EDIT: { platformCode: 1, modelType: 'image', modelCode: 2, modelName: 'seedream_v4_5_edit', modelInfo: '即梦 4.5 图生图' },
 } as const
 
 export interface AiPlatformEnumOption {
@@ -16,6 +16,7 @@ export interface AiPlatformEnumOption {
 
 export interface AiModelEnumOption {
   platformCode: number
+  modelType: string
   modelCode: number
   modelName: string
   modelInfo: string

@@ -8,6 +8,7 @@ export interface AiModel {
   platformCode?: number
   modelCode?: number
   modelName?: string
+  modelType?: string
   apiUrl?: string
   billingType?: string
   creditConfig?: string
@@ -24,6 +25,7 @@ export interface AiModelQuery {
   platformCode?: number
   modelCode?: number
   modelName?: string
+  modelType?: string
   status?: string
 }
 

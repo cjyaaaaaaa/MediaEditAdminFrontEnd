@@ -6,13 +6,23 @@
           <el-option v-for="item in platformOptions" :key="item.platformId" :label="item.platformName" :value="item.platformId" />
         </el-select>
       </el-form-item>
-      <el-form-item label="模型编码" prop="modelCode">
-        <el-select v-model="queryParams.modelCode" placeholder="模型编码" clearable style="width: 200px">
+      <el-form-item label="模型类型" prop="modelType">
+        <el-select v-model="queryParams.modelType" placeholder="模型类型" clearable style="width: 160px" @change="handleQueryTypeChange">
+          <el-option v-for="item in modelTypeOptions" :key="item.code" :label="item.label" :value="item.code" />
+        </el-select>
+      </el-form-item>
+      <el-form-item label="模型名称" prop="modelName">
+        <el-select
+          v-model="queryParams.modelName"
+          placeholder="选择或输入模型名称"
+          clearable filterable allow-create default-first-option
+          style="width: 220px"
+        >
           <el-option
-            v-for="item in modelEnumOptions"
-            :key="item.platformCode + '-' + item.modelCode"
-            :label="item.modelName + ' (' + item.modelCode + ')'"
-            :value="item.modelCode"
+            v-for="item in queryFilteredModelOptions"
+            :key="modelEnumKey(item)"
+            :label="item.modelName"
+            :value="item.modelName"
           />
         </el-select>
       </el-form-item>
@@ -44,12 +54,15 @@
       <el-table-column type="selection" width="55" align="center" />
       <el-table-column label="模型ID" align="center" prop="modelId" width="80" />
       <el-table-column label="平台" align="center" prop="platformName" />
-      <el-table-column label="模型编码" align="center" prop="modelCode" width="120">
+      <el-table-column label="模型编码" align="center" prop="modelCode" width="100" />
+      <el-table-column label="模型名称" align="center" prop="modelName" />
+      <el-table-column label="类型" align="center" prop="modelType" width="80">
         <template #default="scope">
-          <span>{{ getModelName(scope.row.platformCode, scope.row.modelCode) }} ({{ scope.row.modelCode }})</span>
+          <el-tag :type="modelTypeTagType(scope.row.modelType)" size="small">
+            {{ modelTypeLabel(scope.row.modelType) }}
+          </el-tag>
         </template>
       </el-table-column>
-      <el-table-column label="模型名称" align="center" prop="modelName" />
       <el-table-column label="计费方式 / 价格" align="center" prop="billingType" min-width="160">
         <template #default="scope">
           <div>
@@ -58,7 +71,19 @@
           <div class="credit-config-text">{{ formatCreditConfig(scope.row.billingType, scope.row.creditConfig) }}</div>
         </template>
       </el-table-column>
-      <el-table-column label="API地址" align="center" prop="apiUrl" show-overflow-tooltip />
+      <el-table-column label="API地址" align="left" prop="apiUrl" min-width="200">
+        <template #default="scope">
+          <span style="display:block;word-break:break-all;background:#f0f9ff;border-radius:4px;padding:4px 6px;font-size:12px;color:#0369a1;cursor:pointer"
+            :title="'点击复制'" @click="copyText(scope.row.apiUrl)">{{ scope.row.apiUrl }}</span>
+        </template>
+      </el-table-column>
+      <el-table-column label="配置JSON" align="left" prop="configJson" min-width="200">
+        <template #default="scope">
+          <pre v-if="scope.row.configJson" style="margin:0;font-size:12px;white-space:pre-wrap;word-break:break-all;text-align:left;background:#f0fdf4;border-radius:4px;padding:4px 6px;color:#15803d;cursor:pointer"
+            title="点击复制" @click="copyText(scope.row.configJson)">{{ formatJson(scope.row.configJson) }}</pre>
+          <span v-else class="text-gray-400">-</span>
+        </template>
+      </el-table-column>
       <el-table-column label="状态" align="center" prop="status" width="90">
         <template #default="scope">
           <dict-tag :options="sys_normal_disable" :value="scope.row.status" />
@@ -81,11 +106,22 @@
             <el-option v-for="item in platformOptions" :key="item.platformId" :label="item.platformName" :value="item.platformId" />
           </el-select>
         </el-form-item>
-        <el-form-item label="模型枚举" prop="modelCode">
-          <el-select v-model="selectedModelKey" placeholder="请选择模型" style="width: 100%" @change="handleModelEnumChange">
+        <el-form-item label="模型类型" prop="modelType">
+          <el-select v-model="form.modelType" placeholder="请选择模型类型" style="width: 100%" @change="handleModelTypeChange">
+            <el-option v-for="item in modelTypeOptions" :key="item.code" :label="item.label" :value="item.code" />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="模型枚举" prop="modelCode" v-if="form.modelType !== 'other'">
+          <el-select
+            v-model="selectedModelKey"
+            :placeholder="form.modelType ? '请选择模型' : '请先选择模型类型'"
+            :disabled="!form.modelType || form.modelType === 'other'"
+            style="width: 100%"
+            @change="handleModelEnumChange"
+          >
             <el-option
               v-for="item in filteredModelEnumOptions"
-              :key="item.platformCode + '-' + item.modelCode"
+              :key="modelEnumKey(item)"
               :label="item.modelName + ' (' + item.modelCode + ')'"
               :value="modelEnumKey(item)"
             />
@@ -184,7 +220,8 @@
           </div>
         </el-form-item>
         <el-form-item label="配置JSON" prop="configJson">
-          <el-input v-model="form.configJson" type="textarea" :rows="3" placeholder='{"enableSyncMode":true,"enableBase64Output":false}' />
+          <el-input v-model="form.configJson" type="textarea" :rows="6" placeholder="请输入扩展配置 JSON（可选）" />
+          <el-button size="small" style="margin-top:4px" @click="formatConfigJson">一键格式化</el-button>
         </el-form-item>
         <el-form-item label="排序" prop="sortOrder">
           <el-input-number v-model="form.sortOrder" controls-position="right" :min="0" />
@@ -209,10 +246,12 @@
 </template>
 
 <script setup lang="ts" name="AiModel">
+import { ElMessage } from 'element-plus'
 import { listModel, getModel, addModel, updateModel, delModel } from '@/api/ai/model'
 import { optionselectPlatform } from '@/api/ai/platform'
 import { listAiEnums } from '@/api/ai/enums'
-import { AI_MODEL_OPTIONS, AI_BILLING_TYPES, AiModelEnum, getModelName, getBillingTypeInfo, formatCreditConfig } from '@/constants/ai'
+import type { AiModelTypeOption } from '@/api/ai/enums'
+import { AI_MODEL_OPTIONS, AI_BILLING_TYPES, getModelName, getBillingTypeInfo, formatCreditConfig } from '@/constants/ai'
 import type { AiModelEnumOption } from '@/constants/ai'
 import type { AiModel, AiModelQuery } from '@/api/ai/model'
 import type { AiPlatform } from '@/api/ai/platform'
@@ -223,6 +262,7 @@ const { sys_normal_disable } = proxy.useDict('sys_normal_disable')
 const modelList = ref<AiModel[]>([])
 const platformOptions = ref<AiPlatform[]>([])
 const modelEnumOptions = ref<AiModelEnumOption[]>([...AI_MODEL_OPTIONS])
+const modelTypeOptions = ref<AiModelTypeOption[]>([])
 const billingTypeList = AI_BILLING_TYPES
 const selectedModelKey = ref('')
 const open = ref(false)
@@ -248,12 +288,21 @@ const creditConfigData = reactive({
   per_task: { credit_per_task: 0 },
 })
 
+const queryFilteredModelOptions = computed(() => {
+  const type = queryParams.value.modelType
+  if (!type || type === 'other') return []
+  return modelEnumOptions.value.filter(item => item.modelType === type)
+})
+
 const filteredModelEnumOptions = computed(() => {
+  const type = form.value.modelType
+  if (!type || type === 'other') return []
   const platform = platformOptions.value.find(item => item.platformId === form.value.platformId)
-  if (!platform?.platformCode) {
-    return modelEnumOptions.value
+  let options = modelEnumOptions.value.filter(item => item.modelType === type)
+  if (platform?.platformCode) {
+    options = options.filter(item => item.platformCode === platform.platformCode)
   }
-  return modelEnumOptions.value.filter(item => item.platformCode === platform.platformCode)
+  return options
 })
 
 const data = reactive({
@@ -263,6 +312,8 @@ const data = reactive({
     pageSize: 10,
     platformId: undefined,
     modelCode: undefined,
+    modelName: undefined,
+    modelType: undefined,
     status: undefined
   } as AiModelQuery,
   rules: {
@@ -278,12 +329,12 @@ const data = reactive({
 const { queryParams, form, rules } = toRefs(data)
 
 function modelEnumKey(item: AiModelEnumOption) {
-  return `${item.platformCode}-${item.modelCode}`
+  return `${item.platformCode}-${item.modelType}-${item.modelCode}`
 }
 
 function parseModelEnumKey(key: string) {
-  const [platformCode, modelCode] = key.split('-').map(Number)
-  return { platformCode, modelCode }
+  const parts = key.split('-')
+  return { platformCode: Number(parts[0]), modelType: parts[1], modelCode: Number(parts[2]) }
 }
 
 function handlePlatformChange() {
@@ -292,18 +343,32 @@ function handlePlatformChange() {
   form.value.platformCode = platformOptions.value.find(item => item.platformId === form.value.platformId)?.platformCode
 }
 
+function handleQueryTypeChange() {
+  queryParams.value.modelCode = undefined
+  queryParams.value.modelName = undefined
+}
+
+function handleModelTypeChange() {
+  selectedModelKey.value = ''
+  form.value.modelCode = undefined
+  form.value.modelName = ''
+}
+
 function handleModelEnumChange(key: string) {
-  const { platformCode, modelCode } = parseModelEnumKey(key)
-  const modelEnum = modelEnumOptions.value.find(item => item.platformCode === platformCode && item.modelCode === modelCode)
+  const { platformCode, modelType, modelCode } = parseModelEnumKey(key)
+  const modelEnum = modelEnumOptions.value.find(
+    item => item.platformCode === platformCode && item.modelType === modelType && item.modelCode === modelCode
+  )
   if (!modelEnum) return
   form.value.platformCode = platformCode
   form.value.modelCode = modelCode
+  form.value.modelType = modelType
   form.value.modelName = modelEnum.modelName
 }
 
 function syncSelectedModelKey() {
-  if (form.value.platformCode != null && form.value.modelCode != null) {
-    selectedModelKey.value = `${form.value.platformCode}-${form.value.modelCode}`
+  if (form.value.platformCode != null && form.value.modelType && form.value.modelCode != null) {
+    selectedModelKey.value = `${form.value.platformCode}-${form.value.modelType}-${form.value.modelCode}`
   } else {
     selectedModelKey.value = ''
   }
@@ -349,6 +414,16 @@ function buildCreditConfig(): string {
   return JSON.stringify({ [billingType]: (creditConfigData as any)[billingType] })
 }
 
+function modelTypeLabel(code?: string) {
+  return modelTypeOptions.value.find(t => t.code === code)?.label || code || '其他'
+}
+
+function modelTypeTagType(code?: string): 'primary' | 'success' | 'info' {
+  if (code === 'image') return 'primary'
+  if (code === 'video') return 'success'
+  return 'info'
+}
+
 function loadPlatforms() {
   optionselectPlatform().then(res => {
     platformOptions.value = res.data || []
@@ -359,6 +434,9 @@ function loadEnums() {
   listAiEnums().then(res => {
     if (res.data?.models?.length) {
       modelEnumOptions.value = res.data.models
+    }
+    if (res.data?.modelTypes?.length) {
+      modelTypeOptions.value = res.data.modelTypes
     }
   }).catch(() => {})
 }
@@ -372,6 +450,29 @@ function getList() {
   })
 }
 
+function copyText(text: string) {
+  navigator.clipboard.writeText(text).then(() => {
+    ElMessage.success('已复制')
+  }).catch(() => {
+    ElMessage.error('复制失败')
+  })
+}
+
+function formatJson(raw: string) {
+  try { return JSON.stringify(JSON.parse(raw), null, 2) } catch { return raw }
+}
+
+
+function formatConfigJson() {
+  const raw = form.value.configJson
+  if (!raw?.trim()) return
+  try {
+    form.value.configJson = JSON.stringify(JSON.parse(raw), null, 2)
+  } catch {
+    ElMessage.warning('JSON 格式不正确，无法格式化')
+  }
+}
+
 function cancel() {
   open.value = false
   reset()
@@ -381,18 +482,19 @@ function reset() {
   form.value = {
     modelId: undefined,
     platformId: undefined,
-    platformCode: AiModelEnum.SEEDREAM_V4_5.platformCode,
-    modelCode: AiModelEnum.SEEDREAM_V4_5.modelCode,
-    modelName: AiModelEnum.SEEDREAM_V4_5.modelName,
+    platformCode: undefined,
+    modelCode: undefined,
+    modelName: undefined,
+    modelType: undefined,
     apiUrl: undefined,
     billingType: undefined,
     creditConfig: undefined,
-    configJson: '{"enableSyncMode":true,"enableBase64Output":false}',
+    configJson: undefined,
     sortOrder: 0,
     status: '0',
     remark: undefined
   }
-  selectedModelKey.value = modelEnumKey(AiModelEnum.SEEDREAM_V4_5)
+  selectedModelKey.value = ''
   resetCreditConfigData()
   proxy.resetForm('modelRef')
 }

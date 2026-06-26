@@ -6,7 +6,6 @@ export interface AiImageTask {
   traceId?: string
   userId?: string
   userName?: string
-  taskType?: string
   status?: string
   requestJson?: string
   prompt?: string
@@ -43,7 +42,6 @@ export interface ImageTaskQuery {
   pageSize?: number
   userId?: string
   userName?: string
-  taskType?: string
   status?: string
   traceId?: string
 }

@@ -4,12 +4,6 @@
       <el-form-item label="用户名称" prop="userName">
         <el-input v-model="queryParams.userName" placeholder="请输入用户名称" clearable style="width: 200px" @keyup.enter="handleQuery" />
       </el-form-item>
-      <el-form-item label="任务类型" prop="taskType">
-        <el-select v-model="queryParams.taskType" placeholder="任务类型" clearable style="width: 160px">
-          <el-option label="文生图" value="generate" />
-          <el-option label="图生图" value="edit" />
-        </el-select>
-      </el-form-item>
       <el-form-item label="状态" prop="status">
         <el-select v-model="queryParams.status" placeholder="状态" clearable style="width: 160px">
           <el-option label="生成中" value="processing" />
@@ -29,11 +23,6 @@
     <el-table v-loading="loading" :data="taskList">
       <el-table-column label="任务ID" align="center" prop="imageId" width="80" />
       <el-table-column label="用户" align="center" prop="userName" width="120" />
-      <el-table-column label="类型" align="center" prop="taskType" width="90">
-        <template #default="scope">
-          <span>{{ scope.row.taskType === 'edit' ? '图生图' : '文生图' }}</span>
-        </template>
-      </el-table-column>
       <el-table-column label="状态" align="center" prop="status" width="100">
         <template #default="scope">
           <el-tag v-if="scope.row.status === 'completed'" type="success">已完成</el-tag>
@@ -94,7 +83,6 @@ const queryParams = ref<ImageTaskQuery>({
   pageNum: 1,
   pageSize: 10,
   userName: undefined,
-  taskType: undefined,
   status: undefined,
   traceId: undefined
 })
