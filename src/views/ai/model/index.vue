@@ -218,6 +218,30 @@
               <span class="ml-2">credit/张</span>
             </el-form-item>
           </div>
+
+          <!-- 按质量和分辨率计费 -->
+          <div v-else-if="form.billingType === 'per_quality_resolution'" class="quality-resolution-pricing">
+            <table class="pricing-table">
+              <thead>
+                <tr>
+                  <th class="quality-header">质量 / 分辨率</th>
+                  <th v-for="r in ['1k', '2k', '4k']" :key="r" class="resolution-header">{{ r }}</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="q in (['low', 'medium', 'high'] as const)" :key="q">
+                  <td class="quality-label">{{ q === 'low' ? '低' : q === 'medium' ? '中' : '高' }} ({{ q }})</td>
+                  <td v-for="r in (['1k', '2k', '4k'] as const)" :key="r" class="price-cell">
+                    <el-input-number
+                      v-model="creditConfigData.per_quality_resolution[q][r]"
+                      :min="0" :precision="0" size="small" controls-position="right"
+                    />
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+            <div class="credit-unit-hint">单位：credit/张</div>
+          </div>
         </el-form-item>
         <el-form-item label="配置JSON" prop="configJson">
           <el-input v-model="form.configJson" type="textarea" :rows="6" placeholder="请输入扩展配置 JSON（可选）" />
@@ -251,8 +275,8 @@ import { listModel, getModel, addModel, updateModel, delModel } from '@/api/ai/m
 import { optionselectPlatform } from '@/api/ai/platform'
 import { listAiEnums } from '@/api/ai/enums'
 import type { AiModelTypeOption } from '@/api/ai/enums'
-import { AI_MODEL_OPTIONS, AI_BILLING_TYPES, getModelName, getBillingTypeInfo, formatCreditConfig } from '@/constants/ai'
-import type { AiModelEnumOption } from '@/constants/ai'
+import { AI_MODEL_OPTIONS, getModelName, formatCreditConfig } from '@/constants/ai'
+import type { AiModelEnumOption, AiBillingType } from '@/constants/ai'
 import type { AiModel, AiModelQuery } from '@/api/ai/model'
 import type { AiPlatform } from '@/api/ai/platform'
 
@@ -263,7 +287,7 @@ const modelList = ref<AiModel[]>([])
 const platformOptions = ref<AiPlatform[]>([])
 const modelEnumOptions = ref<AiModelEnumOption[]>([...AI_MODEL_OPTIONS])
 const modelTypeOptions = ref<AiModelTypeOption[]>([])
-const billingTypeList = AI_BILLING_TYPES
+const billingTypeList = ref<AiBillingType[]>([])
 const selectedModelKey = ref('')
 const open = ref(false)
 const loading = ref(true)
@@ -284,6 +308,11 @@ const creditConfigData = reactive({
     '1080p': { credit_per_second: 0 },
     '2k': { credit_per_second: 0 },
     '4k': { credit_per_second: 0 },
+  },
+  per_quality_resolution: {
+    low:    { '1k': 0, '2k': 0, '4k': 0 },
+    medium: { '1k': 0, '2k': 0, '4k': 0 },
+    high:   { '1k': 0, '2k': 0, '4k': 0 },
   },
   per_task: { credit_per_task: 0 },
 })
@@ -383,6 +412,11 @@ function resetCreditConfigData() {
   creditConfigData.per_resolution['1080p'].credit_per_second = 0
   creditConfigData.per_resolution['2k'].credit_per_second = 0
   creditConfigData.per_resolution['4k'].credit_per_second = 0
+  for (const q of ['low', 'medium', 'high'] as const) {
+    creditConfigData.per_quality_resolution[q]['1k'] = 0
+    creditConfigData.per_quality_resolution[q]['2k'] = 0
+    creditConfigData.per_quality_resolution[q]['4k'] = 0
+  }
   creditConfigData.per_task.credit_per_task = 0
 }
 
@@ -404,6 +438,16 @@ function parseCreditConfig(billingType: string | undefined, creditConfig: string
           creditConfigData.per_resolution[res].credit_per_second = typeData[res].credit_per_second
         }
       }
+    } else if (billingType === 'per_quality_resolution') {
+      for (const q of ['low', 'medium', 'high'] as const) {
+        const qData = typeData[q]
+        if (!qData) continue
+        for (const r of ['1k', '2k', '4k'] as const) {
+          if (qData[r] != null) {
+            creditConfigData.per_quality_resolution[q][r] = qData[r]
+          }
+        }
+      }
     }
   } catch (_) {}
 }
@@ -416,6 +460,10 @@ function buildCreditConfig(): string {
 
 function modelTypeLabel(code?: string) {
   return modelTypeOptions.value.find(t => t.code === code)?.label || code || '其他'
+}
+
+function getBillingTypeInfo(code?: string): string {
+  return billingTypeList.value.find(item => item.code === code)?.info || code || ''
 }
 
 function modelTypeTagType(code?: string): 'primary' | 'success' | 'info' {
@@ -437,6 +485,9 @@ function loadEnums() {
     }
     if (res.data?.modelTypes?.length) {
       modelTypeOptions.value = res.data.modelTypes
+    }
+    if (res.data?.billingTypes?.length) {
+      billingTypeList.value = res.data.billingTypes
     }
   }).catch(() => {})
 }
@@ -583,5 +634,45 @@ getList()
   font-size: 12px;
   color: #606266;
   margin-top: 2px;
+}
+.quality-resolution-pricing .pricing-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 6px;
+}
+.quality-resolution-pricing .pricing-table th,
+.quality-resolution-pricing .pricing-table td {
+  border: 1px solid #e4e7ed;
+  padding: 8px 6px;
+  text-align: center;
+}
+.quality-resolution-pricing .quality-header {
+  background: #f5f7fa;
+  font-weight: 500;
+  font-size: 13px;
+  color: #606266;
+  width: 140px;
+}
+.quality-resolution-pricing .resolution-header {
+  background: #f5f7fa;
+  font-weight: 500;
+  font-size: 13px;
+  color: #606266;
+}
+.quality-resolution-pricing .quality-label {
+  background: #fafafa;
+  font-size: 13px;
+  color: #606266;
+  font-weight: 500;
+}
+.quality-resolution-pricing .price-cell {
+  padding: 4px;
+}
+.quality-resolution-pricing .price-cell .el-input-number {
+  width: 120px;
+}
+.quality-resolution-pricing .credit-unit-hint {
+  font-size: 12px;
+  color: #909399;
 }
 </style>

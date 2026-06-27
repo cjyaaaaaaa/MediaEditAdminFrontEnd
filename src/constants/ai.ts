@@ -45,17 +45,6 @@ export interface AiBillingType {
   info: string
 }
 
-export const AI_BILLING_TYPES: AiBillingType[] = [
-  { code: 'per_picture',    info: '按张计费' },
-  { code: 'per_second',     info: '按秒计费' },
-  { code: 'per_resolution', info: '按分辨率计费' },
-  { code: 'per_task',       info: '按单次任务计费' },
-]
-
-export function getBillingTypeInfo(code?: string): string {
-  return AI_BILLING_TYPES.find(item => item.code === code)?.info || code || ''
-}
-
 export function formatCreditConfig(billingType?: string, creditConfig?: string): string {
   if (!billingType || !creditConfig) return '-'
   try {
@@ -79,6 +68,21 @@ export function formatCreditConfig(billingType?: string, creditConfig?: string):
         .filter(r => res[r]?.credit_per_second != null)
         .map(r => `${r}:${res[r].credit_per_second}`)
         .join('  ') + ' credit/秒'
+    }
+    if (billingType === 'per_quality_resolution') {
+      const qr = cfg.per_quality_resolution
+      if (!qr) return '-'
+      const parts: string[] = []
+      for (const q of ['low', 'medium', 'high'] as const) {
+        const qCfg = qr[q]
+        if (!qCfg) continue
+        const resParts = (['1k', '2k', '4k'] as const)
+          .filter(r => qCfg[r] != null)
+          .map(r => `${r}:${qCfg[r]}`)
+          .join(' ')
+        if (resParts) parts.push(`${q}(${resParts})`)
+      }
+      return parts.length ? parts.join('  ') + ' credit/张' : '-'
     }
   } catch (_) {}
   return '-'

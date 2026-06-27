@@ -59,13 +59,13 @@
 
     <el-dialog :title="title" v-model="open" width="600px" append-to-body>
       <el-form ref="platformRef" :model="form" :rules="rules" label-width="100px">
-        <el-form-item label="平台编码" prop="platformCode">
-          <el-select v-model="form.platformCode" placeholder="请选择平台编码" style="width: 100%">
-            <el-option v-for="item in platformCodeOptions" :key="item.platformCode" :label="item.platformName + ' (' + item.platformCode + ')'" :value="item.platformCode" />
+        <el-form-item label="平台名称" prop="platformCode">
+          <el-select v-model="form.platformCode" placeholder="请选择平台" style="width: 100%" @change="handlePlatformCodeChange">
+            <el-option v-for="item in platformCodeOptions" :key="item.platformCode" :label="item.platformName" :value="item.platformCode" />
           </el-select>
         </el-form-item>
-        <el-form-item label="平台名称" prop="platformName">
-          <el-input v-model="form.platformName" placeholder="请输入平台名称" />
+        <el-form-item label="平台编码" prop="platformCode">
+          <el-input :model-value="form.platformCode" placeholder="选择平台后自动填充" readonly />
         </el-form-item>
         <el-form-item label="配置JSON" prop="configJson">
           <el-input v-model="form.configJson" type="textarea" :rows="5" placeholder='{"apiKey":"sk-xxx","authType":"Bearer","authHeader":"Authorization"}' />
@@ -123,8 +123,7 @@ const data = reactive({
     status: undefined
   } as AiPlatformQuery,
   rules: {
-    platformCode: [{ required: true, message: '平台编码不能为空', trigger: 'blur' }],
-    platformName: [{ required: true, message: '平台名称不能为空', trigger: 'blur' }]
+    platformCode: [{ required: true, message: '请选择平台', trigger: 'change' }]
   }
 })
 
@@ -136,6 +135,11 @@ function loadEnums() {
       platformCodeOptions.value = res.data.platforms
     }
   }).catch(() => {})
+}
+
+function handlePlatformCodeChange(code: number) {
+  const option = platformCodeOptions.value.find(item => item.platformCode === code)
+  form.value.platformName = option?.platformName || ''
 }
 
 function getList() {
