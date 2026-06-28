@@ -43,16 +43,13 @@ export function getModelInfo(platformCode?: number, modelCode?: number) {
 export interface AiBillingType {
   code: string
   info: string
+  description?: string
 }
 
 export function formatCreditConfig(billingType?: string, creditConfig?: string): string {
   if (!billingType || !creditConfig) return '-'
   try {
     const cfg = JSON.parse(creditConfig)
-    if (billingType === 'per_picture') {
-      const v = cfg.per_picture?.credit_per_picture
-      return v != null ? `${v} credit/张` : '-'
-    }
     if (billingType === 'per_second') {
       const v = cfg.per_second?.credit_per_second
       return v != null ? `${v} credit/秒` : '-'
@@ -65,8 +62,16 @@ export function formatCreditConfig(billingType?: string, creditConfig?: string):
       const res = cfg.per_resolution
       if (!res) return '-'
       return (['480p', '540p', '720p', '1080p', '2k', '4k'] as const)
-        .filter(r => res[r]?.credit_per_second != null)
-        .map(r => `${r}:${res[r].credit_per_second}`)
+        .filter(r => res[r] != null)
+        .map(r => `${r}:${res[r]}`)
+        .join('  ') + ' credit'
+    }
+    if (billingType === 'per_resolution_duration') {
+      const rd = cfg.per_resolution_duration
+      if (!rd) return '-'
+      return (['480p', '540p', '720p', '1080p', '4k'] as const)
+        .filter(r => rd[r] != null)
+        .map(r => `${r}:${rd[r]}`)
         .join('  ') + ' credit/秒'
     }
     if (billingType === 'per_quality_resolution') {

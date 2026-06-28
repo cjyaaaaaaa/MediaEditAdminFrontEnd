@@ -26,6 +26,9 @@
           />
         </el-select>
       </el-form-item>
+      <el-form-item label="模型编码" prop="modelCode">
+        <el-input-number v-model="queryParams.modelCode" placeholder="模型编码" :controls="false" :min="1" clearable style="width: 160px" />
+      </el-form-item>
       <el-form-item label="状态" prop="status">
         <el-select v-model="queryParams.status" placeholder="状态" clearable style="width: 200px">
           <el-option v-for="dict in sys_normal_disable" :key="dict.value" :label="dict.label" :value="dict.value" />
@@ -54,9 +57,10 @@
       <el-table-column type="selection" width="55" align="center" />
       <el-table-column label="模型ID" align="center" prop="modelId" width="80" />
       <el-table-column label="平台" align="center" prop="platformName" />
-      <el-table-column label="模型编码" align="center" prop="modelCode" width="100" />
+      <el-table-column label="平台编码" align="center" prop="platformCode" width="100" />
       <el-table-column label="模型名称" align="center" prop="modelName" />
-      <el-table-column label="类型" align="center" prop="modelType" width="80">
+      <el-table-column label="模型编码" align="center" prop="modelCode" width="100" />
+      <el-table-column label="模型类型" align="center" prop="modelType" width="100">
         <template #default="scope">
           <el-tag :type="modelTypeTagType(scope.row.modelType)" size="small">
             {{ modelTypeLabel(scope.row.modelType) }}
@@ -111,31 +115,36 @@
             <el-option v-for="item in modelTypeOptions" :key="item.code" :label="item.label" :value="item.code" />
           </el-select>
         </el-form-item>
-        <el-form-item label="模型枚举" prop="modelCode" v-if="form.modelType !== 'other'">
+        <el-form-item label="模型名称" prop="modelName">
           <el-select
+            v-if="form.modelType && form.modelType !== 'other'"
             v-model="selectedModelKey"
-            :placeholder="form.modelType ? '请选择模型' : '请先选择模型类型'"
-            :disabled="!form.modelType || form.modelType === 'other'"
+            placeholder="请选择模型名称"
             style="width: 100%"
             @change="handleModelEnumChange"
           >
             <el-option
               v-for="item in filteredModelEnumOptions"
               :key="modelEnumKey(item)"
-              :label="item.modelName + ' (' + item.modelCode + ')'"
+              :label="item.modelName"
               :value="modelEnumKey(item)"
             />
           </el-select>
+          <el-input v-else v-model="form.modelName" placeholder="请输入模型名称" />
         </el-form-item>
-        <el-form-item label="模型名称" prop="modelName">
-          <el-input v-model="form.modelName" placeholder="请输入模型名称" />
+        <el-form-item label="模型编码" v-if="form.modelType && form.modelType !== 'other'">
+          <el-input :value="form.modelCode" disabled placeholder="选择模型名称后自动填充" />
         </el-form-item>
         <el-form-item label="API地址" prop="apiUrl">
           <el-input v-model="form.apiUrl" placeholder="完整 API URL" />
         </el-form-item>
         <el-form-item label="计费方式" prop="billingType">
           <el-select v-model="form.billingType" placeholder="请选择计费方式" style="width: 100%">
-            <el-option v-for="item in billingTypeList" :key="item.code" :label="item.info" :value="item.code" />
+            <el-option v-for="item in billingTypeList" :key="item.code" :label="item.info" :value="item.code">
+              <el-tooltip :content="item.description" placement="right" :disabled="!item.description" effect="light">
+                <span style="display:block">{{ item.info }}</span>
+              </el-tooltip>
+            </el-option>
           </el-select>
         </el-form-item>
         <el-form-item label="价格配置" prop="creditConfig">
@@ -157,14 +166,66 @@
               <el-col :span="12">
                 <div class="pricing-item">
                   <span class="resolution-label">480p:</span>
-                  <el-input-number v-model="creditConfigData.per_resolution['480p'].credit_per_second" :min="0" :precision="0" size="small" />
+                  <el-input-number v-model="creditConfigData.per_resolution['480p']" :min="0" :precision="0" size="small" />
+                  <span class="credit-unit">credit</span>
+                </div>
+              </el-col>
+              <el-col :span="12">
+                <div class="pricing-item">
+                  <span class="resolution-label">540p:</span>
+                  <el-input-number v-model="creditConfigData.per_resolution['540p']" :min="0" :precision="0" size="small" />
+                  <span class="credit-unit">credit</span>
+                </div>
+              </el-col>
+            </el-row>
+            <el-row :gutter="10" style="margin-top: 10px">
+              <el-col :span="12">
+                <div class="pricing-item">
+                  <span class="resolution-label">720p:</span>
+                  <el-input-number v-model="creditConfigData.per_resolution['720p']" :min="0" :precision="0" size="small" />
+                  <span class="credit-unit">credit</span>
+                </div>
+              </el-col>
+              <el-col :span="12">
+                <div class="pricing-item">
+                  <span class="resolution-label">1080p:</span>
+                  <el-input-number v-model="creditConfigData.per_resolution['1080p']" :min="0" :precision="0" size="small" />
+                  <span class="credit-unit">credit</span>
+                </div>
+              </el-col>
+            </el-row>
+            <el-row :gutter="10" style="margin-top: 10px">
+              <el-col :span="12">
+                <div class="pricing-item">
+                  <span class="resolution-label">2k:</span>
+                  <el-input-number v-model="creditConfigData.per_resolution['2k']" :min="0" :precision="0" size="small" />
+                  <span class="credit-unit">credit</span>
+                </div>
+              </el-col>
+              <el-col :span="12">
+                <div class="pricing-item">
+                  <span class="resolution-label">4k:</span>
+                  <el-input-number v-model="creditConfigData.per_resolution['4k']" :min="0" :precision="0" size="small" />
+                  <span class="credit-unit">credit</span>
+                </div>
+              </el-col>
+            </el-row>
+          </div>
+
+          <!-- 按分辨率和时长计费 -->
+          <div v-else-if="form.billingType === 'per_resolution_duration'" class="resolution-pricing">
+            <el-row :gutter="10">
+              <el-col :span="12">
+                <div class="pricing-item">
+                  <span class="resolution-label">480p:</span>
+                  <el-input-number v-model="creditConfigData.per_resolution_duration['480p']" :min="0" :precision="0" size="small" />
                   <span class="credit-unit">credit/秒</span>
                 </div>
               </el-col>
               <el-col :span="12">
                 <div class="pricing-item">
                   <span class="resolution-label">540p:</span>
-                  <el-input-number v-model="creditConfigData.per_resolution['540p'].credit_per_second" :min="0" :precision="0" size="small" />
+                  <el-input-number v-model="creditConfigData.per_resolution_duration['540p']" :min="0" :precision="0" size="small" />
                   <span class="credit-unit">credit/秒</span>
                 </div>
               </el-col>
@@ -173,14 +234,14 @@
               <el-col :span="12">
                 <div class="pricing-item">
                   <span class="resolution-label">720p:</span>
-                  <el-input-number v-model="creditConfigData.per_resolution['720p'].credit_per_second" :min="0" :precision="0" size="small" />
+                  <el-input-number v-model="creditConfigData.per_resolution_duration['720p']" :min="0" :precision="0" size="small" />
                   <span class="credit-unit">credit/秒</span>
                 </div>
               </el-col>
               <el-col :span="12">
                 <div class="pricing-item">
                   <span class="resolution-label">1080p:</span>
-                  <el-input-number v-model="creditConfigData.per_resolution['1080p'].credit_per_second" :min="0" :precision="0" size="small" />
+                  <el-input-number v-model="creditConfigData.per_resolution_duration['1080p']" :min="0" :precision="0" size="small" />
                   <span class="credit-unit">credit/秒</span>
                 </div>
               </el-col>
@@ -188,15 +249,8 @@
             <el-row :gutter="10" style="margin-top: 10px">
               <el-col :span="12">
                 <div class="pricing-item">
-                  <span class="resolution-label">2k:</span>
-                  <el-input-number v-model="creditConfigData.per_resolution['2k'].credit_per_second" :min="0" :precision="0" size="small" />
-                  <span class="credit-unit">credit/秒</span>
-                </div>
-              </el-col>
-              <el-col :span="12">
-                <div class="pricing-item">
                   <span class="resolution-label">4k:</span>
-                  <el-input-number v-model="creditConfigData.per_resolution['4k'].credit_per_second" :min="0" :precision="0" size="small" />
+                  <el-input-number v-model="creditConfigData.per_resolution_duration['4k']" :min="0" :precision="0" size="small" />
                   <span class="credit-unit">credit/秒</span>
                 </div>
               </el-col>
@@ -208,14 +262,6 @@
             <el-form-item label="每次任务价格" label-width="100px">
               <el-input-number v-model="creditConfigData.per_task.credit_per_task" :min="0" :precision="0" style="width: 200px" />
               <span class="ml-2">credit/次</span>
-            </el-form-item>
-          </div>
-
-          <!-- 按每张计费 -->
-          <div v-else-if="form.billingType === 'per_picture'">
-            <el-form-item label="每张价格" label-width="80px">
-              <el-input-number v-model="creditConfigData.per_picture.credit_per_picture" :min="0" :precision="0" style="width: 200px" />
-              <span class="ml-2">credit/张</span>
             </el-form-item>
           </div>
 
@@ -242,6 +288,10 @@
             </table>
             <div class="credit-unit-hint">单位：credit/张</div>
           </div>
+        </el-form-item>
+        <el-form-item label="乘以数量(n)" v-if="form.billingType">
+          <el-switch v-model="multiplyByN" />
+          <span style="margin-left:10px;font-size:12px;color:#909399">开启后积分 = 单价 × n（生成数量）</span>
         </el-form-item>
         <el-form-item label="配置JSON" prop="configJson">
           <el-input v-model="form.configJson" type="textarea" :rows="6" placeholder="请输入扩展配置 JSON（可选）" />
@@ -298,16 +348,24 @@ const multiple = ref(true)
 const total = ref(0)
 const title = ref('')
 
+const multiplyByN = ref(false)
+
 const creditConfigData = reactive({
-  per_picture: { credit_per_picture: 0 },
   per_second: { credit_per_second: 0 },
   per_resolution: {
-    '480p': { credit_per_second: 0 },
-    '540p': { credit_per_second: 0 },
-    '720p': { credit_per_second: 0 },
-    '1080p': { credit_per_second: 0 },
-    '2k': { credit_per_second: 0 },
-    '4k': { credit_per_second: 0 },
+    '480p': 0,
+    '540p': 0,
+    '720p': 0,
+    '1080p': 0,
+    '2k': 0,
+    '4k': 0,
+  },
+  per_resolution_duration: {
+    '480p': 0,
+    '540p': 0,
+    '720p': 0,
+    '1080p': 0,
+    '4k': 0,
   },
   per_quality_resolution: {
     low:    { '1k': 0, '2k': 0, '4k': 0 },
@@ -404,14 +462,19 @@ function syncSelectedModelKey() {
 }
 
 function resetCreditConfigData() {
-  creditConfigData.per_picture.credit_per_picture = 0
+  multiplyByN.value = false
   creditConfigData.per_second.credit_per_second = 0
-  creditConfigData.per_resolution['480p'].credit_per_second = 0
-  creditConfigData.per_resolution['540p'].credit_per_second = 0
-  creditConfigData.per_resolution['720p'].credit_per_second = 0
-  creditConfigData.per_resolution['1080p'].credit_per_second = 0
-  creditConfigData.per_resolution['2k'].credit_per_second = 0
-  creditConfigData.per_resolution['4k'].credit_per_second = 0
+  creditConfigData.per_resolution['480p'] = 0
+  creditConfigData.per_resolution['540p'] = 0
+  creditConfigData.per_resolution['720p'] = 0
+  creditConfigData.per_resolution['1080p'] = 0
+  creditConfigData.per_resolution['2k'] = 0
+  creditConfigData.per_resolution['4k'] = 0
+  creditConfigData.per_resolution_duration['480p'] = 0
+  creditConfigData.per_resolution_duration['540p'] = 0
+  creditConfigData.per_resolution_duration['720p'] = 0
+  creditConfigData.per_resolution_duration['1080p'] = 0
+  creditConfigData.per_resolution_duration['4k'] = 0
   for (const q of ['low', 'medium', 'high'] as const) {
     creditConfigData.per_quality_resolution[q]['1k'] = 0
     creditConfigData.per_quality_resolution[q]['2k'] = 0
@@ -424,18 +487,23 @@ function parseCreditConfig(billingType: string | undefined, creditConfig: string
   if (!billingType || !creditConfig) return
   try {
     const parsed = JSON.parse(creditConfig)
+    multiplyByN.value = !!parsed.multiplyByN
     const typeData = parsed[billingType]
     if (!typeData) return
-    if (billingType === 'per_picture' && typeData.credit_per_picture != null) {
-      creditConfigData.per_picture.credit_per_picture = typeData.credit_per_picture
-    } else if (billingType === 'per_second' && typeData.credit_per_second != null) {
+    if (billingType === 'per_second' && typeData.credit_per_second != null) {
       creditConfigData.per_second.credit_per_second = typeData.credit_per_second
     } else if (billingType === 'per_task' && typeData.credit_per_task != null) {
       creditConfigData.per_task.credit_per_task = typeData.credit_per_task
     } else if (billingType === 'per_resolution') {
       for (const res of ['480p', '540p', '720p', '1080p', '2k', '4k'] as const) {
-        if (typeData[res]?.credit_per_second != null) {
-          creditConfigData.per_resolution[res].credit_per_second = typeData[res].credit_per_second
+        if (typeData[res] != null) {
+          creditConfigData.per_resolution[res] = typeData[res]
+        }
+      }
+    } else if (billingType === 'per_resolution_duration') {
+      for (const res of ['480p', '540p', '720p', '1080p', '4k'] as const) {
+        if (typeData[res] != null) {
+          creditConfigData.per_resolution_duration[res] = typeData[res]
         }
       }
     } else if (billingType === 'per_quality_resolution') {
@@ -455,7 +523,9 @@ function parseCreditConfig(billingType: string | undefined, creditConfig: string
 function buildCreditConfig(): string {
   const billingType = form.value.billingType
   if (!billingType) return ''
-  return JSON.stringify({ [billingType]: (creditConfigData as any)[billingType] })
+  const config: Record<string, any> = { [billingType]: (creditConfigData as any)[billingType] }
+  if (multiplyByN.value) config.multiplyByN = true
+  return JSON.stringify(config)
 }
 
 function modelTypeLabel(code?: string) {

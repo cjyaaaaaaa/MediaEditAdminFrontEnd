@@ -1,8 +1,10 @@
 import request from '@/utils/request'
 import type { TableDataInfo } from '@/types'
+import type { AiMediaAsset } from './imageTask'
 
-export interface AiImageTask {
-  imageId?: string
+export interface AiVideoTask {
+  videoId?: string
+  taskId?: string
   site?: string
   traceId?: string
   userId?: string
@@ -10,52 +12,35 @@ export interface AiImageTask {
   status?: string
   requestJson?: string
   prompt?: string
-  userImages?: string
+  duration?: number
   ratio?: string
   resolution?: string
-  width?: number
-  height?: number
+  userImages?: string
+  count?: number
   platformCode?: number
   modelCode?: number
   modelId?: string
   creditCost?: number
-  platformTaskId?: string
   resultMediaId?: string
-  count?: number
   media?: AiMediaAsset
   errorInfo?: string
   createTime?: string
   updateTime?: string
 }
 
-export interface AiMediaAsset {
-  mediaId?: string
-  mediaType?: string
-  url?: string
-  objectKey?: string
-  fileName?: string
-  mimeType?: string
-  size?: number
-  width?: number
-  height?: number
-  aspectRatio?: string
-  resolution?: string
-  durationMs?: number
-  createTime?: string
-}
-
-export interface ImageTaskQuery {
+export interface VideoTaskQuery {
   pageNum?: number
   pageSize?: number
   userId?: string
   userName?: string
   status?: string
   traceId?: string
+  taskId?: string
 }
 
-export function listImageTask(query: ImageTaskQuery): Promise<TableDataInfo<AiImageTask[]>> {
+export function listVideoTask(query: VideoTaskQuery): Promise<TableDataInfo<AiVideoTask[]>> {
   return request({
-    url: '/system/ai/imageTask/list',
+    url: '/system/ai/videoTask/list',
     method: 'get',
     params: query
   })
