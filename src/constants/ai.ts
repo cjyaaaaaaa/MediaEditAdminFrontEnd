@@ -69,7 +69,7 @@ export function formatCreditConfig(billingType?: string, creditConfig?: string):
     if (billingType === 'per_resolution_duration') {
       const rd = cfg.per_resolution_duration
       if (!rd) return '-'
-      return (['480p', '540p', '720p', '1080p', '4k'] as const)
+      return (['480p', '540p', '720p', '1080p', '2k', '4k'] as const)
         .filter(r => rd[r] != null)
         .map(r => `${r}:${rd[r]}`)
         .join('  ') + ' credit/秒'
