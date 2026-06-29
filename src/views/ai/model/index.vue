@@ -58,7 +58,7 @@
       <el-table-column label="模型ID" align="center" prop="modelId" width="80" />
       <el-table-column label="平台" align="center" prop="platformName" />
       <el-table-column label="平台编码" align="center" prop="platformCode" width="100" />
-      <el-table-column label="模型名称" align="center" prop="modelName" />
+      <el-table-column label="模型名称" align="center" prop="modelName" min-width="160" :cell-style="{ whiteSpace: 'nowrap' }" />
       <el-table-column label="模型编码" align="center" prop="modelCode" width="100" />
       <el-table-column label="模型类型" align="center" prop="modelType" width="100">
         <template #default="scope">
@@ -67,7 +67,7 @@
           </el-tag>
         </template>
       </el-table-column>
-      <el-table-column label="计费方式 / 价格" align="left" prop="billingType" min-width="220">
+      <el-table-column label="计费方式 / 价格" header-align="center" align="left" prop="billingType" min-width="220">
         <template #default="scope">
           <div style="margin-bottom:6px">
             <el-tag size="small" type="info">{{ getBillingTypeInfo(scope.row.billingType) }}</el-tag>
@@ -130,7 +130,7 @@
           <div v-else class="text-gray-400" style="font-size:12px">-</div>
         </template>
       </el-table-column>
-      <el-table-column label="模型配置" align="left" min-width="280">
+      <el-table-column label="模型配置" header-align="center" align="left" min-width="280">
         <template #default="scope">
           <!-- API URL -->
           <div style="margin-bottom:6px">
@@ -151,8 +151,8 @@
             </div>
             <!-- 展示态 -->
             <span v-else-if="scope.row.apiUrl" style="display:block;word-break:break-all;background:#f0f9ff;border-radius:4px;padding:2px 6px;font-size:12px;color:#0369a1;cursor:pointer"
-              title="点击编辑" @click="startEditField(scope.row, 'apiUrl')">{{ scope.row.apiUrl }}</span>
-            <span v-else style="font-size:12px;color:#909399;cursor:pointer" @click="startEditField(scope.row, 'apiUrl')">点击添加</span>
+              title="双击编辑" @dblclick="startEditField(scope.row, 'apiUrl')">{{ scope.row.apiUrl }}</span>
+            <span v-else style="font-size:12px;color:#909399;cursor:pointer" @dblclick="startEditField(scope.row, 'apiUrl')">双击添加</span>
           </div>
           <!-- 模型配置 -->
           <div>
@@ -174,12 +174,12 @@
             </div>
             <!-- 展示态 -->
             <pre v-else-if="scope.row.configJson" style="margin:0;font-size:12px;white-space:pre-wrap;word-break:break-all;text-align:left;background:#f0fdf4;border-radius:4px;padding:2px 6px;color:#15803d;cursor:pointer"
-              title="点击编辑" @click="startEditField(scope.row, 'configJson')">{{ formatJson(scope.row.configJson) }}</pre>
-            <span v-else style="font-size:12px;color:#909399;cursor:pointer" @click="startEditField(scope.row, 'configJson')">点击添加</span>
+              title="双击编辑" @dblclick="startEditField(scope.row, 'configJson')">{{ formatJson(scope.row.configJson) }}</pre>
+            <span v-else style="font-size:12px;color:#909399;cursor:pointer" @dblclick="startEditField(scope.row, 'configJson')">双击添加</span>
           </div>
         </template>
       </el-table-column>
-      <el-table-column label="备注" align="left" min-width="300">
+      <el-table-column label="备注" header-align="center" align="left" min-width="450">
         <template #default="scope">
           <!-- 编辑态 -->
           <div v-if="editingRemarkId === scope.row.modelId" style="display:flex;flex-direction:column;gap:6px">
@@ -234,24 +234,23 @@
             </div>
           </div>
           <!-- 展示态 -->
-          <div v-else style="display:flex;flex-direction:column;gap:10px;cursor:pointer" @click="editingRemarkId = scope.row.modelId">
-            <div v-if="remarkData[scope.row.modelId]?.['对接文档地址']">
+          <div v-else style="display:flex;flex-direction:column;gap:6px;cursor:pointer" @dblclick="editingRemarkId = scope.row.modelId">
+            <div>
               <div class="remark-label">对接文档地址：</div>
-              <div style="font-size:12px;color:#0369a1;word-break:break-all">{{ remarkData[scope.row.modelId]['对接文档地址'] }}</div>
+              <div style="font-size:12px;color:#0369a1;word-break:break-all;white-space:pre-wrap">{{ remarkData[scope.row.modelId]?.['对接文档地址'] || '-' }}</div>
             </div>
-            <div v-if="remarkData[scope.row.modelId]?.['模型说明']">
+            <div>
               <div class="remark-label">模型说明：</div>
-              <div style="font-size:12px">{{ remarkData[scope.row.modelId]['模型说明'] }}</div>
+              <div style="font-size:12px;white-space:pre-wrap">{{ remarkData[scope.row.modelId]?.['模型说明'] || '-' }}</div>
             </div>
-            <div v-if="remarkData[scope.row.modelId]?.['参数说明']">
+            <div>
               <div class="remark-label">参数说明：</div>
-              <div style="font-size:12px">{{ remarkData[scope.row.modelId]['参数说明'] }}</div>
+              <div style="font-size:12px;white-space:pre-wrap">{{ remarkData[scope.row.modelId]?.['参数说明'] || '-' }}</div>
             </div>
-            <div v-if="remarkData[scope.row.modelId]?.['前端json参数']">
+            <div>
               <div class="remark-label">前端JSON参数：</div>
-              <pre style="margin:0;font-size:12px;white-space:pre-wrap;word-break:break-all;text-align:left;background:#fdf6ec;border-radius:4px;padding:4px 6px;color:#b45309">{{ formatJson(remarkData[scope.row.modelId]['前端json参数']) }}</pre>
+              <pre style="margin:0;font-size:12px;white-space:pre-wrap;word-break:break-all;text-align:left;background:#fdf6ec;border-radius:4px;padding:4px 6px;color:#b45309">{{ remarkData[scope.row.modelId]?.['前端json参数'] ? formatJson(remarkData[scope.row.modelId]['前端json参数']) : '-' }}</pre>
             </div>
-            <span v-if="!remarkData[scope.row.modelId]?.['对接文档地址'] && !remarkData[scope.row.modelId]?.['模型说明'] && !remarkData[scope.row.modelId]?.['参数说明'] && !remarkData[scope.row.modelId]?.['前端json参数']" class="text-gray-400" style="font-size:12px">点击添加备注</span>
           </div>
         </template>
       </el-table-column>

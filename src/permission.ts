@@ -48,7 +48,11 @@ router.beforeEach((to, from, next) => {
                 router.addRoute(route) // 动态添加可访问路由表
               }
             })
-            if (to.path === '/') {
+            // 检查目标路径在动态路由加载后是否真实存在，否则跳到第一个可用页面
+            const resolved = router.resolve(to.fullPath)
+            const isUnmatched = resolved.matched.length === 0
+              || resolved.matched.some((r: any) => r.path === '/:pathMatch(.*)*')
+            if (to.path === '/' || isUnmatched) {
               next({ path: usePermissionStore().getDefaultRoutePath(), replace: true })
             } else {
               next({ ...to, replace: true }) // hack方法 确保addRoutes已完成

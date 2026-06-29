@@ -27,6 +27,19 @@ import Layout from '@/layout/index.vue'
 // 公共路由
 export const constantRoutes = [
   {
+    path: '',
+    component: Layout,
+    hidden: true,
+    redirect: '/index',
+    children: [
+      {
+        path: '/index',
+        component: () => import('@/views/index.vue'),
+        meta: { title: '首页', icon: 'dashboard', affix: true }
+      }
+    ]
+  },
+  {
     path: '/redirect',
     component: Layout,
     hidden: true,
