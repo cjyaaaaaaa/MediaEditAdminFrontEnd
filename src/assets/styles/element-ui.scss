@@ -94,3 +94,9 @@
 .el-dropdown .el-dropdown-link{
   color: var(--el-color-primary) !important;
 }
+
+// fix: el-image 预览遮罩需要覆盖侧边栏(z-index: 1001)和顶栏
+.el-image-viewer__wrapper {
+  z-index: 2000 !important;
+  background-color: rgba(0, 0, 0, 0.56) !important;
+}

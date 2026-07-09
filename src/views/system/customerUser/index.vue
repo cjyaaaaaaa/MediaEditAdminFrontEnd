@@ -103,7 +103,7 @@
         <el-descriptions-item label="备注">{{ detail.remark || '-' }}</el-descriptions-item>
         <el-descriptions-item label="头像" :span="2">
           <template v-if="detail.avatar">
-            <el-image :src="detail.avatar" style="width:48px;height:48px;border-radius:4px" fit="cover" :preview-src-list="[detail.avatar]">
+            <el-image :src="detail.avatar" style="width:48px;height:48px;border-radius:4px" fit="cover" :preview-src-list="[detail.avatar]" preview-teleported>
               <template #error>
                 <div style="width:48px;height:48px;border-radius:4px;background:#f5f5f5;display:flex;align-items:center;justify-content:center;color:#ccc;font-size:12px">无法加载</div>
               </template>

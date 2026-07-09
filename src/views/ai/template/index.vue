@@ -55,6 +55,7 @@
             v-if="scope.row.coverUrl"
             :src="resolveResourceUrl(scope.row.coverUrl)"
             :preview-src-list="[resolveResourceUrl(scope.row.coverUrl)]"
+            preview-teleported
             fit="cover"
             style="width: 56px; height: 56px; border-radius: 6px"
           />
@@ -252,6 +253,7 @@
         class="preview-cover"
         :src="resolveResourceUrl(previewForm.coverUrl)"
         :preview-src-list="[resolveResourceUrl(previewForm.coverUrl)]"
+        preview-teleported
         fit="cover"
       />
     </el-dialog>

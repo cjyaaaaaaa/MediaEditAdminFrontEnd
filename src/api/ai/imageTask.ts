@@ -51,6 +51,12 @@ export interface ImageTaskQuery {
   userName?: string
   status?: string
   traceId?: string
+  site?: string
+  platformCode?: number
+  modelCode?: number
+  platformTaskId?: string
+  beginTime?: string
+  endTime?: string
 }
 
 export function listImageTask(query: ImageTaskQuery): Promise<TableDataInfo<AiImageTask[]>> {
@@ -58,5 +64,13 @@ export function listImageTask(query: ImageTaskQuery): Promise<TableDataInfo<AiIm
     url: '/system/ai/imageTask/list',
     method: 'get',
     params: query
+  })
+}
+
+export function editImageTaskStatus(data: { imageId: string; status: string; errorInfo?: string }) {
+  return request({
+    url: '/system/ai/imageTask/status',
+    method: 'put',
+    data
   })
 }

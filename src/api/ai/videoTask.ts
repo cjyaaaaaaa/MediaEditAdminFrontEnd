@@ -36,6 +36,11 @@ export interface VideoTaskQuery {
   status?: string
   traceId?: string
   taskId?: string
+  site?: string
+  platformCode?: number
+  modelCode?: number
+  beginTime?: string
+  endTime?: string
 }
 
 export function listVideoTask(query: VideoTaskQuery): Promise<TableDataInfo<AiVideoTask[]>> {
@@ -43,5 +48,13 @@ export function listVideoTask(query: VideoTaskQuery): Promise<TableDataInfo<AiVi
     url: '/system/ai/videoTask/list',
     method: 'get',
     params: query
+  })
+}
+
+export function editVideoTaskStatus(data: { videoId: string; status: string; errorInfo?: string }) {
+  return request({
+    url: '/system/ai/videoTask/status',
+    method: 'put',
+    data
   })
 }
