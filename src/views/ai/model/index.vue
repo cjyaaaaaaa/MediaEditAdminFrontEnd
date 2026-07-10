@@ -71,6 +71,7 @@
         <template #default="scope">
           <div style="margin-bottom:6px">
             <el-tag size="small" type="info">{{ getBillingTypeInfo(scope.row.billingType) }}</el-tag>
+            <el-tag size="small" :type="getCreditValue(scope.row.creditConfig, 'multiplyByN') === 'true' ? 'success' : 'info'" style="margin-left:4px">{{ getCreditValue(scope.row.creditConfig, 'multiplyByN') === 'true' ? '支持数量' : '不支持数量' }}</el-tag>
           </div>
           <div v-if="scope.row.billingType && scope.row.creditConfig">
             <!-- per_second -->
