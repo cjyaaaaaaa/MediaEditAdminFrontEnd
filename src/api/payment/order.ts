@@ -8,7 +8,6 @@ export interface PaymentOrder {
   userName?: string
   planId?: string
   planName?: string
-  planCode?: string
   billingType?: string
   amountCent?: number
   currency?: string

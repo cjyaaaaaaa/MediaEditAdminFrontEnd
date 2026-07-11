@@ -1,11 +1,13 @@
 <template>
   <div class="app-container">
     <el-form :model="queryParams" ref="queryRef" :inline="true" v-show="showSearch">
+      <el-form-item label="站点" prop="site">
+        <el-select v-model="queryParams.site" placeholder="站点" clearable style="width: 160px">
+          <el-option v-for="s in siteList" :key="s" :label="s" :value="s" />
+        </el-select>
+      </el-form-item>
       <el-form-item label="套餐名称" prop="planName">
         <el-input v-model="queryParams.planName" placeholder="请输入套餐名称" clearable style="width: 200px" @keyup.enter="handleQuery" />
-      </el-form-item>
-      <el-form-item label="套餐编码" prop="planCode">
-        <el-input v-model="queryParams.planCode" placeholder="请输入套餐编码" clearable style="width: 200px" @keyup.enter="handleQuery" />
       </el-form-item>
       <el-form-item label="计费类型" prop="billingType">
         <el-select v-model="queryParams.billingType" placeholder="计费类型" clearable style="width: 180px">
@@ -40,8 +42,13 @@
     <el-table v-loading="loading" :data="planList" @selection-change="handleSelectionChange">
       <el-table-column type="selection" width="55" align="center" />
       <el-table-column label="ID" align="center" prop="planId" width="80" />
+      <el-table-column label="站点" align="center" prop="site" min-width="120" />
       <el-table-column label="套餐名称" align="center" prop="planName" min-width="140" />
-      <el-table-column label="套餐编码" align="center" prop="planCode" min-width="140" />
+      <el-table-column label="套餐描述" prop="description" min-width="180">
+        <template #default="scope">
+          <span class="desc-cell">{{ scope.row.description }}</span>
+        </template>
+      </el-table-column>
       <el-table-column label="计费类型" align="center" prop="billingType" width="100">
         <template #default="scope">{{ scope.row.billingType === 'subscription' ? '订阅' : '一次性' }}</template>
       </el-table-column>
@@ -76,16 +83,21 @@
       <el-form ref="planRef" :model="form" :rules="rules" label-width="110px">
         <el-row :gutter="16">
           <el-col :span="12">
+            <el-form-item label="站点" prop="site">
+              <el-select v-model="form.site" placeholder="请选择站点" style="width: 100%">
+                <el-option v-for="s in siteList" :key="s" :label="s" :value="s" />
+              </el-select>
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
             <el-form-item label="套餐名称" prop="planName">
               <el-input v-model="form.planName" placeholder="请输入套餐名称" />
             </el-form-item>
           </el-col>
-          <el-col :span="12">
-            <el-form-item label="套餐编码" prop="planCode">
-              <el-input v-model="form.planCode" placeholder="如 pro_monthly" />
-            </el-form-item>
-          </el-col>
         </el-row>
+        <el-form-item label="套餐描述" prop="description">
+          <el-input v-model="form.description" type="textarea" :rows="3" placeholder="请输入套餐描述" />
+        </el-form-item>
         <el-row :gutter="16">
           <el-col :span="12">
             <el-form-item label="计费类型" prop="billingType">
@@ -192,11 +204,13 @@
 <script setup lang="ts" name="PaymentPlan">
 import { listPaymentPlan, getPaymentPlan, addPaymentPlan, updatePaymentPlan, delPaymentPlan } from '@/api/payment/plan'
 import type { PaymentPlan, PaymentPlanQuery } from '@/api/payment/plan'
+import { listAiEnums } from '@/api/ai/enums'
 
 const { proxy } = getCurrentInstance()
 const { sys_normal_disable } = proxy.useDict('sys_normal_disable')
 
 const planList = ref<PaymentPlan[]>([])
+const siteList = ref<string[]>([])
 const open = ref(false)
 const loading = ref(true)
 const showSearch = ref(true)
@@ -211,14 +225,15 @@ const data = reactive({
   queryParams: {
     pageNum: 1,
     pageSize: 10,
+    site: undefined,
     planName: undefined,
-    planCode: undefined,
     billingType: undefined,
     status: undefined
   } as PaymentPlanQuery,
   rules: {
+    site: [{ required: true, message: '站点不能为空', trigger: 'change' }],
     planName: [{ required: true, message: '套餐名称不能为空', trigger: 'blur' }],
-    planCode: [{ required: true, message: '套餐编码不能为空', trigger: 'blur' }],
+    description: [{ required: true, message: '套餐描述不能为空', trigger: 'blur' }],
     billingType: [{ required: true, message: '计费类型不能为空', trigger: 'change' }],
     priceCent: [{ required: true, message: '价格不能为空', trigger: 'blur' }],
     creditAmount: [{ required: true, message: '积分不能为空', trigger: 'blur' }]
@@ -239,8 +254,9 @@ function getList() {
 function reset() {
   form.value = {
     planId: undefined,
+    site: undefined,
     planName: undefined,
-    planCode: undefined,
+    description: undefined,
     billingType: 'one_time',
     priceCent: 1000,
     currency: 'USD',
@@ -327,6 +343,16 @@ function formatMoney(priceCent?: number, currency?: string) {
   return `${currency || 'USD'} ${(Number(priceCent || 0) / 100).toFixed(2)}`
 }
 
+function loadEnums() {
+  listAiEnums().then(res => {
+    const data = res.data
+    if (data?.sites) {
+      siteList.value = data.sites
+    }
+  }).catch(() => {})
+}
+
+loadEnums()
 getList()
 </script>
 
@@ -336,5 +362,10 @@ getList()
 }
 .mt12 {
   margin-top: 12px;
+}
+.desc-cell {
+  white-space: pre-line;
+  text-align: left;
+  line-height: 1.5;
 }
 </style>

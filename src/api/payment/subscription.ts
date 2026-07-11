@@ -7,7 +7,6 @@ export interface UserSubscription {
   userName?: string
   planId?: string
   planName?: string
-  planCode?: string
   paymentProvider?: string
   providerSubscriptionId?: string
   providerCustomerId?: string

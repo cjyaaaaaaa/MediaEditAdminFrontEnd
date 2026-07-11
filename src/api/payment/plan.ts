@@ -14,8 +14,9 @@ export interface PaymentPlanProvider {
 
 export interface PaymentPlan {
   planId?: string
+  site?: string
   planName?: string
-  planCode?: string
+  description?: string
   billingType?: string
   priceCent?: number
   currency?: string
@@ -31,8 +32,8 @@ export interface PaymentPlan {
 export interface PaymentPlanQuery {
   pageNum?: number
   pageSize?: number
+  site?: string
   planName?: string
-  planCode?: string
   billingType?: string
   status?: string
 }
