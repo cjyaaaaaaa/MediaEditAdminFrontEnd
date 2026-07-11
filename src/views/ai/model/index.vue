@@ -284,7 +284,7 @@
         </el-form-item>
         <el-form-item label="模型名称" prop="modelName">
           <el-select
-            v-if="form.modelType && form.modelType !== 'other'"
+            v-if="form.modelType && form.modelType !== 'other' && form.modelType !== 'llm'"
             v-model="selectedModelKey"
             placeholder="请选择模型名称"
             style="width: 100%"
@@ -300,7 +300,8 @@
           <el-input v-else v-model="form.modelName" placeholder="请输入模型名称" />
         </el-form-item>
         <el-form-item label="模型编码" v-if="form.modelType && form.modelType !== 'other'">
-          <el-input :value="form.modelCode" disabled placeholder="选择模型名称后自动填充" />
+          <el-input v-if="form.modelType === 'llm'" v-model="form.modelCode" placeholder="请输入模型编码" />
+          <el-input v-else :value="form.modelCode" disabled placeholder="选择模型名称后自动填充" />
         </el-form-item>
         <el-form-item label="计费方式" prop="billingType">
           <el-select v-model="form.billingType" placeholder="请选择计费方式" style="width: 100%">
@@ -612,7 +613,7 @@ const queryFilteredModelOptions = computed(() => {
 
 const filteredModelEnumOptions = computed(() => {
   const type = form.value.modelType
-  if (!type || type === 'other') return []
+  if (!type || type === 'other' || type === 'llm') return []
   const platform = platformOptions.value.find(item => item.platformId === form.value.platformId)
   let options = modelEnumOptions.value.filter(item => item.modelType === type)
   if (platform?.platformCode) {
@@ -809,9 +810,10 @@ function getBillingTypeInfo(code?: string): string {
   return billingTypeList.value.find(item => item.code === code)?.info || code || ''
 }
 
-function modelTypeTagType(code?: string): 'primary' | 'success' | 'info' {
+function modelTypeTagType(code?: string): 'primary' | 'success' | 'warning' | 'info' {
   if (code === 'image') return 'primary'
   if (code === 'video') return 'success'
+  if (code === 'llm') return 'warning'
   return 'info'
 }
 

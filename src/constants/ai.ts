@@ -7,6 +7,8 @@ export const AiPlatformEnum = {
 export const AiModelEnum = {
   SEEDREAM_V4_5:      { platformCode: 1, modelType: 'image', modelCode: 1, modelName: 'seedream_v4_5',      modelInfo: '即梦 4.5 文生图' },
   SEEDREAM_V4_5_EDIT: { platformCode: 1, modelType: 'image', modelCode: 2, modelName: 'seedream_v4_5_edit', modelInfo: '即梦 4.5 图生图' },
+  GPT_4_1:           { platformCode: 1, modelType: 'llm', modelCode: 20001, modelName: 'gpt-4.1',          modelInfo: 'GPT-4.1 文本生成' },
+  GPT_4_1_MINI:      { platformCode: 1, modelType: 'llm', modelCode: 20002, modelName: 'gpt-4.1-mini',     modelInfo: 'GPT-4.1 Mini 文本生成' },
 } as const
 
 export interface AiPlatformEnumOption {
