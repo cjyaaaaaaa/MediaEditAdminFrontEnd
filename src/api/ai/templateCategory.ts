@@ -1,12 +1,16 @@
 import request from '@/utils/request'
 import type { AjaxResult, TableDataInfo } from '@/types'
+import type { AiTemplateMediaType, AiTemplateSourceType, CommonStatus } from '@/constants/ai'
 
 export interface AiTemplateCategory {
   categoryId?: string
+  site?: string
+  userId?: string
   categoryName?: string
-  categoryCode?: string
+  sourceType?: AiTemplateSourceType
+  mediaType?: AiTemplateMediaType
   sortOrder?: number
-  status?: string
+  status?: CommonStatus
   remark?: string
   createTime?: string
 }
@@ -15,8 +19,11 @@ export interface TemplateCategoryQuery {
   pageNum?: number
   pageSize?: number
   categoryName?: string
-  categoryCode?: string
-  status?: string
+  site?: string
+  userId?: string
+  sourceType?: AiTemplateSourceType
+  mediaType?: AiTemplateMediaType
+  status?: CommonStatus
 }
 
 export function listTemplateCategory(query?: TemplateCategoryQuery): Promise<TableDataInfo<AiTemplateCategory[]>> {

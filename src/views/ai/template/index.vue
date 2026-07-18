@@ -1,25 +1,22 @@
 <template>
   <div class="app-container">
+    <el-tabs v-model="activeSourceType" class="source-tabs" @tab-change="handleSourceTabChange">
+      <el-tab-pane label="系统" :name="AiTemplateSourceTypeEnum.SYSTEM" />
+      <el-tab-pane label="用户" :name="AiTemplateSourceTypeEnum.USER" />
+    </el-tabs>
+
     <el-form :model="queryParams" ref="queryRef" :inline="true" v-show="showSearch">
       <el-form-item label="模板名称" prop="keyword">
-        <el-input v-model="queryParams.keyword" placeholder="请输入模板名称/标签" clearable style="width: 220px" @keyup.enter="handleQuery" />
+        <el-input v-model="queryParams.keyword" placeholder="请输入模板名称/Prompt" clearable style="width: 220px" @keyup.enter="handleQuery" />
+      </el-form-item>
+      <el-form-item label="媒体类型" prop="mediaType">
+        <el-select v-model="queryParams.mediaType" placeholder="媒体类型" clearable style="width: 140px" @change="handleQueryTypeChange">
+          <el-option v-for="item in mediaTypeOptions" :key="item.value" :label="item.label" :value="item.value" />
+        </el-select>
       </el-form-item>
       <el-form-item label="分类" prop="categoryId">
         <el-select v-model="queryParams.categoryId" placeholder="请选择分类" clearable style="width: 180px">
-          <el-option v-for="item in categoryOptions" :key="item.categoryId" :label="item.categoryName" :value="item.categoryId" />
-        </el-select>
-      </el-form-item>
-      <el-form-item label="来源" prop="sourceType">
-        <el-select v-model="queryParams.sourceType" placeholder="来源" clearable style="width: 140px">
-          <el-option label="系统模板" value="system" />
-          <el-option label="用户模板" value="user" />
-        </el-select>
-      </el-form-item>
-      <el-form-item label="审核" prop="auditStatus">
-        <el-select v-model="queryParams.auditStatus" placeholder="审核状态" clearable style="width: 140px">
-          <el-option label="待审核" value="pending" />
-          <el-option label="已通过" value="approved" />
-          <el-option label="已驳回" value="rejected" />
+          <el-option v-for="item in queryCategoryOptions" :key="item.categoryId" :label="formatCategoryLabel(item)" :value="item.categoryId" />
         </el-select>
       </el-form-item>
       <el-form-item label="状态" prop="status">
@@ -34,8 +31,8 @@
     </el-form>
 
     <el-row :gutter="10" class="mb8">
-      <el-col :span="1.5">
-        <el-button type="primary" plain icon="Plus" @click="handleAdd" v-hasPermi="['ai:template:add']">新增系统模板</el-button>
+      <el-col v-if="activeSourceType === AiTemplateSourceTypeEnum.SYSTEM" :span="1.5">
+        <el-button type="primary" plain icon="Plus" @click="handleAdd" v-hasPermi="['ai:template:add']">新增模板</el-button>
       </el-col>
       <el-col :span="1.5">
         <el-button type="success" plain icon="Edit" :disabled="single" @click="handleUpdate" v-hasPermi="['ai:template:edit']">修改</el-button>
@@ -51,74 +48,49 @@
       <el-table-column label="ID" align="center" prop="templateId" width="80" />
       <el-table-column label="封面" align="center" width="92">
         <template #default="scope">
-          <el-image
-            v-if="scope.row.coverUrl"
-            :src="resolveResourceUrl(scope.row.coverUrl)"
-            :preview-src-list="[resolveResourceUrl(scope.row.coverUrl)]"
-            preview-teleported
-            fit="cover"
-            style="width: 56px; height: 56px; border-radius: 6px"
-          />
+          <el-badge v-if="firstCover(scope.row.coverUrl)" :value="coverCount(scope.row.coverUrl)" :hidden="coverCount(scope.row.coverUrl) <= 1" type="info">
+            <el-image
+              :src="resolveResourceUrl(firstCover(scope.row.coverUrl))"
+              :preview-src-list="coverPreviewList(scope.row.coverUrl)"
+              preview-teleported
+              fit="cover"
+              class="table-cover"
+            />
+          </el-badge>
           <span v-else>-</span>
         </template>
       </el-table-column>
-      <el-table-column label="模板名称" align="center" prop="templateName" min-width="130" show-overflow-tooltip />
-      <el-table-column label="分类" align="center" prop="categoryName" width="110" />
-      <el-table-column label="来源" align="center" prop="sourceType" width="90">
+      <el-table-column label="模板名称" align="center" prop="templateName" min-width="140" show-overflow-tooltip />
+      <el-table-column label="站点" align="center" prop="site" width="130">
+        <template #default="scope">{{ scope.row.site || '-' }}</template>
+      </el-table-column>
+      <el-table-column v-if="activeSourceType === AiTemplateSourceTypeEnum.USER" label="用户ID" align="center" prop="userId" min-width="160" />
+      <el-table-column label="媒体类型" align="center" prop="mediaType" width="100">
         <template #default="scope">
-          <el-tag :type="scope.row.sourceType === 'system' ? 'success' : 'info'">{{ formatSourceType(scope.row.sourceType) }}</el-tag>
+          <el-tag :type="scope.row.mediaType === AiTemplateMediaTypeEnum.VIDEO ? 'warning' : 'success'">{{ formatMediaType(scope.row.mediaType) }}</el-tag>
         </template>
       </el-table-column>
-      <el-table-column label="类型" align="center" prop="taskType" width="90">
-        <template #default="scope">
-          <span>{{ formatTaskType(scope.row.taskType) }}</span>
-        </template>
-      </el-table-column>
-      <el-table-column label="审核" align="center" prop="auditStatus" width="90">
-        <template #default="scope">
-          <el-tag :type="auditTagType(scope.row.auditStatus)">{{ formatAuditStatus(scope.row.auditStatus) }}</el-tag>
-        </template>
+      <el-table-column label="分类" align="center" prop="categoryName" width="120">
+        <template #default="scope">{{ scope.row.categoryName || '-' }}</template>
       </el-table-column>
       <el-table-column label="状态" align="center" prop="status" width="90">
         <template #default="scope">
           <dict-tag :options="sys_normal_disable" :value="scope.row.status" />
         </template>
       </el-table-column>
-      <el-table-column label="尺寸" align="center" width="105">
-        <template #default="scope">
-          <span>{{ scope.row.width }}x{{ scope.row.height }}</span>
-        </template>
-      </el-table-column>
-      <el-table-column label="Prompt" align="center" prop="prompt" min-width="220" show-overflow-tooltip />
-      <el-table-column label="使用" align="center" prop="usageCount" width="80" />
+      <el-table-column label="Prompt" align="center" prop="prompt" min-width="260" show-overflow-tooltip />
       <el-table-column label="排序" align="center" prop="sortOrder" width="80" />
       <el-table-column label="创建时间" align="center" prop="createTime" width="170">
         <template #default="scope">
           <span>{{ parseTime(scope.row.createTime) }}</span>
         </template>
       </el-table-column>
-      <el-table-column label="操作" width="260" align="center" fixed="right">
+      <el-table-column label="操作" width="230" align="center" fixed="right">
         <template #default="scope">
           <el-button link type="primary" icon="View" @click="handlePreview(scope.row)" v-hasPermi="['ai:template:query']">预览</el-button>
-          <el-button
-            v-if="scope.row.auditStatus === 'pending'"
-            link
-            type="primary"
-            icon="Check"
-            @click="handleAudit(scope.row, 'approved')"
-            v-hasPermi="['ai:template:audit']"
-          >通过</el-button>
-          <el-button
-            v-if="scope.row.auditStatus === 'pending'"
-            link
-            type="primary"
-            icon="Close"
-            @click="openRejectDialog(scope.row)"
-            v-hasPermi="['ai:template:audit']"
-          >驳回</el-button>
           <el-button link type="primary" icon="Edit" @click="handleUpdate(scope.row)" v-hasPermi="['ai:template:edit']">修改</el-button>
           <el-button link type="primary" icon="Switch" @click="handleStatusChange(scope.row)" v-hasPermi="['ai:template:edit']">
-            {{ scope.row.status === '0' ? '下架' : '上架' }}
+            {{ scope.row.status === CommonStatusEnum.NORMAL ? '下架' : '上架' }}
           </el-button>
           <el-button link type="primary" icon="Delete" @click="handleDelete(scope.row)" v-hasPermi="['ai:template:remove']">删除</el-button>
         </template>
@@ -136,35 +108,17 @@
             </el-form-item>
           </el-col>
           <el-col :span="12">
-            <el-form-item label="分类" prop="categoryId">
-              <el-select v-model="form.categoryId" placeholder="请选择分类" style="width: 100%">
-                <el-option v-for="item in categoryOptions" :key="item.categoryId" :label="item.categoryName" :value="item.categoryId" />
-              </el-select>
-            </el-form-item>
-          </el-col>
-          <el-col :span="12">
-            <el-form-item label="来源" prop="sourceType">
-              <el-select v-model="form.sourceType" placeholder="请选择来源" style="width: 100%">
-                <el-option label="系统模板" value="system" />
-                <el-option label="用户模板" value="user" />
-              </el-select>
-            </el-form-item>
-          </el-col>
-          <el-col :span="12">
-            <el-form-item label="审核状态" prop="auditStatus">
-              <el-select v-model="form.auditStatus" placeholder="请选择审核状态" style="width: 100%">
-                <el-option label="待审核" value="pending" />
-                <el-option label="已通过" value="approved" />
-                <el-option label="已驳回" value="rejected" />
-              </el-select>
-            </el-form-item>
-          </el-col>
-          <el-col :span="12">
-            <el-form-item label="任务类型" prop="taskType">
-              <el-radio-group v-model="form.taskType">
-                <el-radio value="generate">文生图</el-radio>
-                <el-radio value="edit">图生图</el-radio>
+            <el-form-item label="媒体类型" prop="mediaType">
+              <el-radio-group v-model="form.mediaType" @change="handleFormTypeChange">
+                <el-radio-button v-for="item in mediaTypeOptions" :key="item.value" :value="item.value">{{ item.label }}</el-radio-button>
               </el-radio-group>
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="分类" prop="categoryId">
+              <el-select v-model="form.categoryId" placeholder="可不选择分类" clearable style="width: 100%">
+                <el-option v-for="item in formCategoryOptions" :key="item.categoryId" :label="formatCategoryLabel(item)" :value="item.categoryId" />
+              </el-select>
             </el-form-item>
           </el-col>
           <el-col :span="12">
@@ -174,49 +128,19 @@
               </el-radio-group>
             </el-form-item>
           </el-col>
-          <el-col :span="24">
-            <el-form-item label="封面图" prop="coverUrl">
-              <image-upload v-model="form.coverUrl" action="/oss/uploadToDir" :data="{ directory: 'ai-template' }" :limit="1" />
-            </el-form-item>
-          </el-col>
-          <el-col :span="24">
-            <el-form-item label="Prompt" prop="prompt">
-              <el-input v-model="form.prompt" type="textarea" :rows="4" placeholder="请输入模板提示词" />
-            </el-form-item>
-          </el-col>
-          <el-col :span="12">
-            <el-form-item label="平台编码" prop="platformCode">
-              <el-input-number v-model="form.platformCode" controls-position="right" :min="0" />
-            </el-form-item>
-          </el-col>
-          <el-col :span="12">
-            <el-form-item label="模型编码" prop="modelCode">
-              <el-input-number v-model="form.modelCode" controls-position="right" :min="0" />
-            </el-form-item>
-          </el-col>
-          <el-col :span="12">
-            <el-form-item label="宽度" prop="width">
-              <el-input-number v-model="form.width" controls-position="right" :min="64" :step="64" />
-            </el-form-item>
-          </el-col>
-          <el-col :span="12">
-            <el-form-item label="高度" prop="height">
-              <el-input-number v-model="form.height" controls-position="right" :min="64" :step="64" />
-            </el-form-item>
-          </el-col>
-          <el-col :span="12">
-            <el-form-item label="标签" prop="tags">
-              <el-input v-model="form.tags" placeholder="多个标签用逗号分隔" />
-            </el-form-item>
-          </el-col>
           <el-col :span="12">
             <el-form-item label="排序" prop="sortOrder">
               <el-input-number v-model="form.sortOrder" controls-position="right" :min="0" />
             </el-form-item>
           </el-col>
           <el-col :span="24">
-            <el-form-item label="驳回原因" prop="rejectReason">
-              <el-input v-model="form.rejectReason" type="textarea" :rows="2" placeholder="审核驳回时填写" />
+            <el-form-item label="封面图" prop="coverUrl">
+              <image-upload v-model="coverUploadValue" action="/oss/uploadToDir" :data="{ directory: 'ai-template' }" :limit="5" />
+            </el-form-item>
+          </el-col>
+          <el-col :span="24">
+            <el-form-item label="Prompt" prop="prompt">
+              <el-input v-model="form.prompt" type="textarea" :rows="5" placeholder="请输入模板提示词" />
             </el-form-item>
           </el-col>
           <el-col :span="24">
@@ -237,58 +161,49 @@
     <el-dialog title="模板预览" v-model="previewOpen" width="680px" append-to-body>
       <el-descriptions :column="2" border>
         <el-descriptions-item label="模板名称">{{ previewForm.templateName }}</el-descriptions-item>
-        <el-descriptions-item label="分类">{{ previewForm.categoryName }}</el-descriptions-item>
+        <el-descriptions-item label="媒体类型">{{ formatMediaType(previewForm.mediaType) }}</el-descriptions-item>
+        <el-descriptions-item label="分类">{{ previewForm.categoryName || '-' }}</el-descriptions-item>
         <el-descriptions-item label="来源">{{ formatSourceType(previewForm.sourceType) }}</el-descriptions-item>
-        <el-descriptions-item label="审核">{{ formatAuditStatus(previewForm.auditStatus) }}</el-descriptions-item>
-        <el-descriptions-item label="任务类型">{{ formatTaskType(previewForm.taskType) }}</el-descriptions-item>
-        <el-descriptions-item label="尺寸">{{ previewForm.width }}x{{ previewForm.height }}</el-descriptions-item>
-        <el-descriptions-item label="平台/模型">{{ previewForm.platformCode }} / {{ previewForm.modelCode }}</el-descriptions-item>
-        <el-descriptions-item label="使用次数">{{ previewForm.usageCount || 0 }}</el-descriptions-item>
-        <el-descriptions-item label="标签" :span="2">{{ previewForm.tags || '-' }}</el-descriptions-item>
+        <el-descriptions-item label="状态"><dict-tag :options="sys_normal_disable" :value="previewForm.status" /></el-descriptions-item>
+        <el-descriptions-item label="排序">{{ previewForm.sortOrder ?? 0 }}</el-descriptions-item>
         <el-descriptions-item label="Prompt" :span="2">{{ previewForm.prompt }}</el-descriptions-item>
-        <el-descriptions-item label="驳回原因" :span="2">{{ previewForm.rejectReason || '-' }}</el-descriptions-item>
       </el-descriptions>
-      <el-image
-        v-if="previewForm.coverUrl"
-        class="preview-cover"
-        :src="resolveResourceUrl(previewForm.coverUrl)"
-        :preview-src-list="[resolveResourceUrl(previewForm.coverUrl)]"
-        preview-teleported
-        fit="cover"
-      />
-    </el-dialog>
-
-    <el-dialog title="驳回模板" v-model="rejectOpen" width="520px" append-to-body>
-      <el-form ref="rejectRef" :model="rejectForm" :rules="rejectRules" label-width="90px">
-        <el-form-item label="驳回原因" prop="rejectReason">
-          <el-input v-model="rejectForm.rejectReason" type="textarea" :rows="4" placeholder="请输入驳回原因" />
-        </el-form-item>
-      </el-form>
-      <template #footer>
-        <div class="dialog-footer">
-          <el-button type="primary" @click="submitReject">确 定</el-button>
-          <el-button @click="rejectOpen = false">取 消</el-button>
-        </div>
-      </template>
+      <div v-if="coverPreviewList(previewForm.coverUrl).length" class="preview-cover-list">
+        <el-image
+          v-for="url in coverPreviewList(previewForm.coverUrl)"
+          :key="url"
+          class="preview-cover"
+          :src="url"
+          :preview-src-list="coverPreviewList(previewForm.coverUrl)"
+          preview-teleported
+          fit="cover"
+        />
+      </div>
     </el-dialog>
   </div>
 </template>
 
 <script setup lang="ts" name="AiTemplate">
-import { listTemplate, getTemplate, addTemplate, updateTemplate, auditTemplate, delTemplate } from '@/api/ai/template'
+import { listTemplate, getTemplate, addTemplate, updateTemplate, delTemplate } from '@/api/ai/template'
 import { listTemplateCategory } from '@/api/ai/templateCategory'
 import { resolveResourceUrl } from '@/utils/objectStorageUpload'
-import type { AiImageTemplate, TemplateQuery } from '@/api/ai/template'
+import { AI_TEMPLATE_MEDIA_TYPE_OPTIONS, AI_TEMPLATE_SOURCE_TYPE_OPTIONS, AiTemplateMediaTypeEnum, AiTemplateSourceTypeEnum, CommonStatusEnum } from '@/constants/ai'
+import type { AiTemplate, TemplateQuery } from '@/api/ai/template'
 import type { AiTemplateCategory } from '@/api/ai/templateCategory'
+import type { AiTemplateSourceType } from '@/constants/ai'
 
 const { proxy } = getCurrentInstance()
 const { sys_normal_disable } = proxy.useDict('sys_normal_disable')
 
-const templateList = ref<AiImageTemplate[]>([])
+const mediaTypeOptions = AI_TEMPLATE_MEDIA_TYPE_OPTIONS
+
+const sourceTypeOptions = AI_TEMPLATE_SOURCE_TYPE_OPTIONS
+const activeSourceType = ref<AiTemplateSourceType>(AiTemplateSourceTypeEnum.SYSTEM)
+
+const templateList = ref<AiTemplate[]>([])
 const categoryOptions = ref<AiTemplateCategory[]>([])
 const open = ref(false)
 const previewOpen = ref(false)
-const rejectOpen = ref(false)
 const loading = ref(true)
 const showSearch = ref(true)
 const ids = ref<string[]>([])
@@ -296,43 +211,81 @@ const single = ref(true)
 const multiple = ref(true)
 const total = ref(0)
 const title = ref('')
-const previewForm = ref<AiImageTemplate>({})
-const rejectForm = ref<AiImageTemplate>({})
+const previewForm = ref<AiTemplate>({})
 
 const data = reactive({
-  form: {} as AiImageTemplate,
+  form: {} as AiTemplate,
   queryParams: {
     pageNum: 1,
     pageSize: 10,
     categoryId: undefined,
     keyword: undefined,
-    sourceType: undefined,
-    auditStatus: undefined,
-    taskType: undefined,
+    sourceType: AiTemplateSourceTypeEnum.SYSTEM,
+    mediaType: undefined,
     status: undefined
   } as TemplateQuery,
   rules: {
     templateName: [{ required: true, message: '模板名称不能为空', trigger: 'blur' }],
-    categoryId: [{ required: true, message: '请选择分类', trigger: 'change' }],
-    sourceType: [{ required: true, message: '请选择来源', trigger: 'change' }],
-    auditStatus: [{ required: true, message: '请选择审核状态', trigger: 'change' }],
-    taskType: [{ required: true, message: '请选择任务类型', trigger: 'change' }],
-    prompt: [{ required: true, message: 'Prompt不能为空', trigger: 'blur' }],
-    coverUrl: [{ required: true, message: '请上传封面图', trigger: 'change' }],
-    platformCode: [{ required: true, message: '平台编码不能为空', trigger: 'blur' }],
-    modelCode: [{ required: true, message: '模型编码不能为空', trigger: 'blur' }],
-    width: [{ required: true, message: '宽度不能为空', trigger: 'blur' }],
-    height: [{ required: true, message: '高度不能为空', trigger: 'blur' }]
-  },
-  rejectRules: {
-    rejectReason: [{ required: true, message: '驳回原因不能为空', trigger: 'blur' }]
+    mediaType: [{ required: true, message: '请选择媒体类型', trigger: 'change' }],
+    prompt: [{ required: true, message: 'Prompt不能为空', trigger: 'blur' }]
   }
 })
 
-const { queryParams, form, rules, rejectRules } = toRefs(data)
+const { queryParams, form, rules } = toRefs(data)
+
+const coverUploadValue = computed({
+  get: () => (form.value.coverUrl || []).join(','),
+  set: (value: string | string[]) => {
+    form.value.coverUrl = normalizeCoverValue(value)
+  }
+})
+
+const formCategoryOptions = computed(() => categoryOptions.value.filter(item => {
+  const mediaMatched = !form.value.mediaType || item.mediaType === form.value.mediaType
+  const sourceMatched = !form.value.sourceType || item.sourceType === form.value.sourceType
+  return mediaMatched && sourceMatched
+}))
+
+const queryCategoryOptions = computed(() => categoryOptions.value.filter(item => {
+  const mediaMatched = !queryParams.value.mediaType || item.mediaType === queryParams.value.mediaType
+  const sourceMatched = item.sourceType === activeSourceType.value
+  return mediaMatched && sourceMatched
+}))
+
+function normalizeCoverValue(value?: string | string[]) {
+  if (!value) return []
+  return Array.isArray(value) ? value.filter(Boolean) : value.split(',').map(item => item.trim()).filter(Boolean)
+}
+
+function firstCover(value?: string[] | string) {
+  return normalizeCoverValue(value)[0]
+}
+
+function coverPreviewList(value?: string[] | string) {
+  return normalizeCoverValue(value).map(item => resolveResourceUrl(item))
+}
+
+function coverCount(value?: string[] | string) {
+  return normalizeCoverValue(value).length
+}
+
+function formatMediaType(value?: string) {
+  return mediaTypeOptions.find(item => item.value === value)?.label || value || '-'
+}
+
+function formatSourceType(value?: string) {
+  const option = sourceTypeOptions.find(item => item.value === value)
+  if (option) return option.label
+  return value || '-'
+}
+
+function formatCategoryLabel(item: AiTemplateCategory) {
+  return `${item.categoryName} / ${formatMediaType(item.mediaType)} / ${formatSourceType(item.sourceType)}`
+}
 
 function getList() {
   loading.value = true
+  queryParams.value.sourceType = activeSourceType.value
   listTemplate(queryParams.value).then(response => {
     templateList.value = response.rows
     total.value = response.total
@@ -341,7 +294,7 @@ function getList() {
 }
 
 function loadCategories() {
-  listTemplateCategory({ pageNum: 1, pageSize: 100, status: '0' }).then(response => {
+  listTemplateCategory({ pageNum: 1, pageSize: 500, status: CommonStatusEnum.NORMAL }).then(response => {
     categoryOptions.value = response.rows || []
   })
 }
@@ -356,20 +309,12 @@ function reset() {
     templateId: undefined,
     categoryId: undefined,
     templateName: undefined,
-    sourceType: 'system',
-    auditStatus: 'approved',
-    taskType: 'generate',
+    sourceType: activeSourceType.value,
+    mediaType: AiTemplateMediaTypeEnum.IMAGE,
     prompt: undefined,
-    coverUrl: undefined,
-    platformCode: 1,
-    modelCode: 1,
-    width: 1024,
-    height: 1024,
-    tags: undefined,
-    usageCount: 0,
+    coverUrl: [],
     sortOrder: 0,
-    status: '0',
-    rejectReason: undefined,
+    status: CommonStatusEnum.NORMAL,
     remark: undefined
   }
   proxy.resetForm('templateRef')
@@ -380,12 +325,37 @@ function handleQuery() {
   getList()
 }
 
+function handleQueryTypeChange() {
+  const exists = queryCategoryOptions.value.some(item => item.categoryId === queryParams.value.categoryId)
+  if (!exists) {
+    queryParams.value.categoryId = undefined
+  }
+}
+
+function handleFormTypeChange() {
+  const exists = formCategoryOptions.value.some(item => item.categoryId === form.value.categoryId)
+  if (!exists) {
+    form.value.categoryId = undefined
+  }
+}
+
 function resetQuery() {
   proxy.resetForm('queryRef')
+  queryParams.value.sourceType = activeSourceType.value
   handleQuery()
 }
 
-function handleSelectionChange(selection: AiImageTemplate[]) {
+function handleSourceTabChange() {
+  queryParams.value.sourceType = activeSourceType.value
+  queryParams.value.categoryId = undefined
+  queryParams.value.pageNum = 1
+  ids.value = []
+  single.value = true
+  multiple.value = true
+  getList()
+}
+
+function handleSelectionChange(selection: AiTemplate[]) {
   ids.value = selection.map(item => item.templateId!)
   single.value = selection.length !== 1
   multiple.value = !selection.length
@@ -397,11 +367,14 @@ function handleAdd() {
   title.value = '添加系统模板'
 }
 
-function handleUpdate(row?: AiImageTemplate) {
+function handleUpdate(row?: AiTemplate) {
   reset()
   const templateId = row?.templateId || ids.value[0]
   getTemplate(templateId).then(response => {
-    form.value = response.data!
+    form.value = {
+      ...response.data!,
+      coverUrl: normalizeCoverValue(response.data?.coverUrl as any)
+    }
     open.value = true
     title.value = '修改模板'
   })
@@ -410,6 +383,7 @@ function handleUpdate(row?: AiImageTemplate) {
 function submitForm() {
   proxy.$refs['templateRef'].validate((valid: boolean) => {
     if (!valid) return
+    form.value.coverUrl = normalizeCoverValue(form.value.coverUrl as any)
     const action = form.value.templateId ? updateTemplate(form.value) : addTemplate(form.value)
     action.then(() => {
       proxy.$modal.msgSuccess(form.value.templateId ? '修改成功' : '新增成功')
@@ -419,7 +393,7 @@ function submitForm() {
   })
 }
 
-function handleDelete(row?: AiImageTemplate) {
+function handleDelete(row?: AiTemplate) {
   const templateIds = row?.templateId || ids.value
   proxy.$modal.confirm('是否确认删除模板编号为"' + templateIds + '"的数据项？').then(() => {
     return delTemplate(templateIds)
@@ -429,83 +403,26 @@ function handleDelete(row?: AiImageTemplate) {
   }).catch(() => {})
 }
 
-function handlePreview(row: AiImageTemplate) {
+function handlePreview(row: AiTemplate) {
   getTemplate(row.templateId!).then(response => {
     previewForm.value = response.data || row
     previewOpen.value = true
   })
 }
 
-function handleAudit(row: AiImageTemplate, auditStatus: string, rejectReason?: string) {
-  const label = auditStatus === 'approved' ? '通过' : '驳回'
-  proxy.$modal.confirm(`是否确认${label}模板"${row.templateName}"？`).then(() => {
-    return auditTemplate({
-      templateId: row.templateId,
-      auditStatus,
-      rejectReason
-    })
-  }).then(() => {
-    proxy.$modal.msgSuccess(`${label}成功`)
-    getList()
-  }).catch(() => {})
-}
-
-function openRejectDialog(row: AiImageTemplate) {
-  rejectForm.value = {
-    templateId: row.templateId,
-    templateName: row.templateName,
-    auditStatus: 'rejected',
-    rejectReason: undefined
-  }
-  rejectOpen.value = true
-  proxy.resetForm('rejectRef')
-}
-
-function submitReject() {
-  proxy.$refs['rejectRef'].validate((valid: boolean) => {
-    if (!valid) return
-    handleAudit(rejectForm.value, 'rejected', rejectForm.value.rejectReason)
-    rejectOpen.value = false
-  })
-}
-
-function handleStatusChange(row: AiImageTemplate) {
-  const nextStatus = row.status === '0' ? '1' : '0'
-  const label = nextStatus === '0' ? '上架' : '下架'
+function handleStatusChange(row: AiTemplate) {
+  const nextStatus = row.status === CommonStatusEnum.NORMAL ? CommonStatusEnum.DISABLED : CommonStatusEnum.NORMAL
+  const label = nextStatus === CommonStatusEnum.NORMAL ? '上架' : '下架'
   proxy.$modal.confirm(`是否确认${label}模板"${row.templateName}"？`).then(() => {
     return updateTemplate({
       ...row,
-      status: nextStatus
+      status: nextStatus,
+      coverUrl: normalizeCoverValue(row.coverUrl as any)
     })
   }).then(() => {
     proxy.$modal.msgSuccess(`${label}成功`)
     getList()
   }).catch(() => {})
-}
-
-function formatSourceType(value?: string) {
-  if (value === 'system') return '系统'
-  if (value === 'user') return '用户'
-  return value || '-'
-}
-
-function formatTaskType(value?: string) {
-  if (value === 'edit') return '图生图'
-  if (value === 'generate') return '文生图'
-  return value || '-'
-}
-
-function formatAuditStatus(value?: string) {
-  if (value === 'pending') return '待审核'
-  if (value === 'approved') return '已通过'
-  if (value === 'rejected') return '已驳回'
-  return value || '-'
-}
-
-function auditTagType(value?: string) {
-  if (value === 'approved') return 'success'
-  if (value === 'rejected') return 'danger'
-  return 'warning'
 }
 
 loadCategories()
@@ -513,11 +430,26 @@ getList()
 </script>
 
 <style scoped lang="scss">
+.source-tabs {
+  margin-bottom: 16px;
+}
+
+.preview-cover-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 18px;
+}
+
 .preview-cover {
-  display: block;
-  width: 220px;
-  height: 220px;
-  margin: 18px auto 0;
+  width: 140px;
+  height: 140px;
   border-radius: 8px;
+}
+
+.table-cover {
+  width: 56px;
+  height: 56px;
+  border-radius: 6px;
 }
 </style>

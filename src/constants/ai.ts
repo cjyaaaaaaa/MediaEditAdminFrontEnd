@@ -11,6 +11,40 @@ export const AiModelEnum = {
   GPT_4_1_MINI:      { platformCode: 1, modelType: 'llm', modelCode: 20002, modelName: 'gpt-4.1-mini',     modelInfo: 'GPT-4.1 Mini 文本生成' },
 } as const
 
+/** AI 模板来源类型 */
+export const AiTemplateSourceTypeEnum = {
+  SYSTEM: 'system',
+  USER: 'user'
+} as const
+
+export type AiTemplateSourceType = typeof AiTemplateSourceTypeEnum[keyof typeof AiTemplateSourceTypeEnum]
+
+/** AI 模板媒体类型 */
+export const AiTemplateMediaTypeEnum = {
+  IMAGE: 'image',
+  VIDEO: 'video'
+} as const
+
+export type AiTemplateMediaType = typeof AiTemplateMediaTypeEnum[keyof typeof AiTemplateMediaTypeEnum]
+
+/** 通用启停状态 */
+export const CommonStatusEnum = {
+  NORMAL: '0',
+  DISABLED: '1'
+} as const
+
+export type CommonStatus = typeof CommonStatusEnum[keyof typeof CommonStatusEnum]
+
+export const AI_TEMPLATE_SOURCE_TYPE_OPTIONS = [
+  { label: '系统模板', value: AiTemplateSourceTypeEnum.SYSTEM },
+  { label: '用户模板', value: AiTemplateSourceTypeEnum.USER }
+]
+
+export const AI_TEMPLATE_MEDIA_TYPE_OPTIONS = [
+  { label: '图片', value: AiTemplateMediaTypeEnum.IMAGE },
+  { label: '视频', value: AiTemplateMediaTypeEnum.VIDEO }
+]
+
 export interface AiPlatformEnumOption {
   platformCode: number
   platformName: string

@@ -1,27 +1,21 @@
 import request from '@/utils/request'
 import type { AjaxResult, TableDataInfo } from '@/types'
+import type { AiTemplateMediaType, AiTemplateSourceType, CommonStatus } from '@/constants/ai'
 
-export interface AiImageTemplate {
+export interface AiTemplate {
   templateId?: string
+  site?: string
   categoryId?: string
   categoryName?: string
   userId?: string
   userName?: string
   templateName?: string
-  sourceType?: string
-  auditStatus?: string
-  taskType?: string
+  sourceType?: AiTemplateSourceType
+  mediaType?: AiTemplateMediaType
   prompt?: string
-  coverUrl?: string
-  platformCode?: number
-  modelCode?: number
-  width?: number
-  height?: number
-  tags?: string
-  usageCount?: number
+  coverUrl?: string[]
   sortOrder?: number
-  status?: string
-  rejectReason?: string
+  status?: CommonStatus
   remark?: string
   createTime?: string
 }
@@ -31,13 +25,12 @@ export interface TemplateQuery {
   pageSize?: number
   categoryId?: string
   keyword?: string
-  sourceType?: string
-  auditStatus?: string
-  taskType?: string
-  status?: string
+  sourceType?: AiTemplateSourceType
+  mediaType?: AiTemplateMediaType
+  status?: CommonStatus
 }
 
-export function listTemplate(query: TemplateQuery): Promise<TableDataInfo<AiImageTemplate[]>> {
+export function listTemplate(query: TemplateQuery): Promise<TableDataInfo<AiTemplate[]>> {
   return request({
     url: '/system/ai/template/list',
     method: 'get',
@@ -45,14 +38,14 @@ export function listTemplate(query: TemplateQuery): Promise<TableDataInfo<AiImag
   })
 }
 
-export function getTemplate(templateId: string): Promise<AjaxResult<AiImageTemplate>> {
+export function getTemplate(templateId: string): Promise<AjaxResult<AiTemplate>> {
   return request({
     url: '/system/ai/template/' + templateId,
     method: 'get'
   })
 }
 
-export function addTemplate(data: AiImageTemplate): Promise<AjaxResult> {
+export function addTemplate(data: AiTemplate): Promise<AjaxResult> {
   return request({
     url: '/system/ai/template',
     method: 'post',
@@ -60,17 +53,9 @@ export function addTemplate(data: AiImageTemplate): Promise<AjaxResult> {
   })
 }
 
-export function updateTemplate(data: AiImageTemplate): Promise<AjaxResult> {
+export function updateTemplate(data: AiTemplate): Promise<AjaxResult> {
   return request({
     url: '/system/ai/template',
-    method: 'put',
-    data
-  })
-}
-
-export function auditTemplate(data: AiImageTemplate): Promise<AjaxResult> {
-  return request({
-    url: '/system/ai/template/audit',
     method: 'put',
     data
   })
