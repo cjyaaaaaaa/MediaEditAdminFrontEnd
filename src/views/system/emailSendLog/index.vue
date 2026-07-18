@@ -11,7 +11,7 @@
       <el-form ref="queryRef" :model="queryParams" :inline="true" label-position="top">
         <el-form-item label="所属站点" prop="site">
           <el-select v-model="queryParams.site" clearable filterable placeholder="全部站点" style="width: 210px">
-            <el-option v-for="site in siteOptions" :key="site" :label="site" :value="site" />
+            <el-option v-for="site in siteOptions" :key="site.code" :label="site.label" :value="site.code" />
           </el-select>
         </el-form-item>
         <el-form-item label="业务标签" prop="tag">
@@ -64,7 +64,7 @@
         <el-table-column label="发件人" prop="fromAlias" min-width="140" show-overflow-tooltip />
         <el-table-column label="所属站点" min-width="140">
           <template #default="scope">
-            <el-tag v-if="scope.row.site" type="info" effect="plain">{{ scope.row.site }}</el-tag>
+            <el-tag v-if="scope.row.site" type="info" effect="plain">{{ siteLabel(scope.row.site) }}</el-tag>
             <el-tag v-else type="warning" effect="plain">默认站点域</el-tag>
           </template>
         </el-table-column>
@@ -118,7 +118,7 @@
         </div>
         <div class="error-meta">
           <span><b>发件人：</b>{{ currentLog?.fromAlias || '-' }}</span>
-          <span><b>站点：</b>{{ currentLog?.site || '默认站点域' }}</span>
+          <span><b>站点：</b>{{ siteLabel(currentLog?.site, '默认站点域') }}</span>
           <span><b>语言：</b>{{ localeLabel(currentLog?.requestedLocale, currentLog?.actualLocale) }}</span>
         </div>
         <div class="error-meta">
@@ -139,15 +139,17 @@
 
 <script setup lang="ts" name="EmailSendLog">
 import { listEmailSendLog } from '@/api/system/emailSendLog'
-import { getEmailTemplateSites, getEmailTemplateTags } from '@/api/system/emailTemplate'
+import { getEmailTemplateTags } from '@/api/system/emailTemplate'
+import { listCustomerSiteOptions } from '@/api/system/customerSite'
 import type { EmailSendLog } from '@/api/system/emailSendLog'
 import type { EmailTemplateTagOption } from '@/api/system/emailTemplate'
+import type { CustomerSiteOption } from '@/api/system/customerSite'
 
 const { proxy } = getCurrentInstance() as any
 
 const rows = ref<EmailSendLog[]>([])
 const tagOptions = ref<EmailTemplateTagOption[]>([])
-const siteOptions = ref<string[]>([])
+const siteOptions = ref<CustomerSiteOption[]>([])
 const loading = ref(false)
 const showSearch = ref(true)
 const total = ref(0)
@@ -169,6 +171,10 @@ const queryParams = reactive({
 function tagLabel(tag?: string) {
   const option = tagOptions.value.find((item: EmailTemplateTagOption) => item.code === tag)
   return option ? `${option.description} · ${option.code}` : (tag || '-')
+}
+
+function siteLabel(site?: string, emptyLabel = '-') {
+  return siteOptions.value.find(item => item.code === site)?.label || site || emptyLabel
 }
 
 function localeLabel(requested?: string, actual?: string) {
@@ -222,7 +228,7 @@ function showDetail(row: EmailSendLog) {
 }
 
 getEmailTemplateTags().then(response => { tagOptions.value = response.data || [] })
-getEmailTemplateSites().then(response => { siteOptions.value = response.data || [] })
+listCustomerSiteOptions().then(response => { siteOptions.value = response.data || [] })
 getList()
 </script>
 

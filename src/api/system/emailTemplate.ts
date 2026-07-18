@@ -16,9 +16,6 @@ export interface EmailSendResult { sendLogId: string; status: string }
 export function getEmailTemplateTags(): Promise<AjaxResult<EmailTemplateTagOption[]>> {
   return request({ url: '/system/email/template/tag-options', method: 'get' })
 }
-export function getEmailTemplateSites(): Promise<AjaxResult<string[]>> {
-  return request({ url: '/system/email/template/site-options', method: 'get' })
-}
 export function getEmailTemplateLocales(): Promise<AjaxResult<EmailTemplateLocaleOption[]>> {
   return request({ url: '/system/email/template/locale-options', method: 'get' })
 }

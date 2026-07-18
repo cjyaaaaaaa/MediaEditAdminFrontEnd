@@ -65,7 +65,7 @@
       </el-table-column>
       <el-table-column label="模板名称" align="center" prop="templateName" min-width="140" show-overflow-tooltip />
       <el-table-column label="站点" align="center" prop="site" width="130">
-        <template #default="scope">{{ scope.row.site || '-' }}</template>
+        <template #default="scope">{{ siteLabel(scope.row.site) }}</template>
       </el-table-column>
       <el-table-column v-if="activeSourceType === AiTemplateSourceTypeEnum.USER" label="用户ID" align="center" prop="userId" min-width="160" />
       <el-table-column label="媒体类型" align="center" prop="mediaType" width="100">
@@ -108,7 +108,7 @@
           <el-col :span="12">
             <el-form-item label="所属站点" prop="site">
               <el-select v-model="form.site" placeholder="请选择所属站点" filterable style="width: 100%" @change="handleFormSiteChange">
-                <el-option v-for="site in siteOptions" :key="site" :label="site" :value="site" />
+                <el-option v-for="site in siteOptions" :key="site.code" :label="site.label" :value="site.code" />
               </el-select>
             </el-form-item>
           </el-col>
@@ -209,18 +209,19 @@
 <script setup lang="ts" name="AiTemplate">
 import { listTemplate, getTemplate, addTemplate, updateTemplate, delTemplate } from '@/api/ai/template'
 import { listTemplateCategory } from '@/api/ai/templateCategory'
-import { listAiEnums } from '@/api/ai/enums'
+import { listCustomerSiteOptions } from '@/api/system/customerSite'
 import { resolveResourceUrl } from '@/utils/objectStorageUpload'
 import { AI_TEMPLATE_MEDIA_TYPE_OPTIONS, AI_TEMPLATE_SOURCE_TYPE_OPTIONS, AiTemplateMediaTypeEnum, AiTemplateSourceTypeEnum, CommonStatusEnum } from '@/constants/ai'
 import type { AiTemplate, TemplateQuery } from '@/api/ai/template'
 import type { AiTemplateCategory } from '@/api/ai/templateCategory'
 import type { AiTemplateSourceType } from '@/constants/ai'
+import type { CustomerSiteOption } from '@/api/system/customerSite'
 
 const { proxy } = getCurrentInstance()
 const { sys_normal_disable } = proxy.useDict('sys_normal_disable')
 
 const mediaTypeOptions = AI_TEMPLATE_MEDIA_TYPE_OPTIONS
-const siteOptions = ref<string[]>([])
+const siteOptions = ref<CustomerSiteOption[]>([])
 
 const sourceTypeOptions = AI_TEMPLATE_SOURCE_TYPE_OPTIONS
 const activeSourceType = ref<AiTemplateSourceType>(AiTemplateSourceTypeEnum.SYSTEM)
@@ -289,6 +290,10 @@ function coverPreviewList(value?: string[] | string) {
 
 function formatMediaType(value?: string) {
   return mediaTypeOptions.find(item => item.value === value)?.label || value || '-'
+}
+
+function siteLabel(site?: string) {
+  return siteOptions.value.find(item => item.code === site)?.label || site || '-'
 }
 
 function formatSourceType(value?: string) {
@@ -458,8 +463,8 @@ function handleStatusChange(row: AiTemplate) {
   }).catch(() => {})
 }
 
-listAiEnums().then(response => {
-  siteOptions.value = response.data?.allowedSites || []
+listCustomerSiteOptions().then(response => {
+  siteOptions.value = response.data || []
 })
 loadCategories()
 getList()

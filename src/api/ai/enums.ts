@@ -12,8 +12,6 @@ export interface AiEnumsResult {
   models: AiModelEnumOption[]
   modelTypes: AiModelTypeOption[]
   billingTypes: AiBillingType[]
-  allowedSites: string[]
-  sites: string[]
 }
 
 export function listAiEnums(): Promise<AjaxResult<AiEnumsResult>> {

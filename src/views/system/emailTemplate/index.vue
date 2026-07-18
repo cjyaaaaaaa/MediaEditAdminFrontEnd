@@ -14,7 +14,7 @@
       <el-form ref="queryRef" :model="queryParams" :inline="true" label-position="top">
         <el-form-item label="所属站点" prop="site">
           <el-select v-model="queryParams.site" clearable filterable placeholder="全部站点" style="width: 210px">
-            <el-option v-for="site in siteOptions" :key="site" :label="site" :value="site" />
+            <el-option v-for="site in siteOptions" :key="site.code" :label="site.label" :value="site.code" />
           </el-select>
         </el-form-item>
         <el-form-item label="业务标签" prop="tag">
@@ -57,7 +57,7 @@
         <el-table-column label="发件人" prop="fromAlias" min-width="130" />
         <el-table-column label="所属站点" min-width="150">
           <template #default="scope">
-            <el-tag v-if="scope.row.site" type="info" effect="plain">{{ scope.row.site }}</el-tag>
+            <el-tag v-if="scope.row.site" type="info" effect="plain">{{ siteLabel(scope.row.site) }}</el-tag>
             <el-tag v-else type="warning" effect="plain">默认站点域</el-tag>
           </template>
         </el-table-column>
@@ -106,7 +106,7 @@
             <el-col :span="8">
               <el-form-item label="所属站点" prop="site">
                 <el-select v-model="form.site" style="width: 100%" placeholder="选择站点">
-                  <el-option v-for="site in siteOptions" :key="site" :label="site" :value="site" />
+                  <el-option v-for="site in siteOptions" :key="site.code" :label="site.label" :value="site.code" />
                 </el-select>
               </el-form-item>
             </el-col>
@@ -168,7 +168,7 @@
     <el-dialog title="测试发送" v-model="testOpen" width="620px" append-to-body>
       <el-alert title="测试邮件会使用当前已保存的模板内容。" type="info" :closable="false" show-icon class="test-alert" />
       <el-form ref="testRef" :model="testForm" label-position="top">
-        <el-form-item label="模板站点"><el-input :model-value="testTemplate.site || '默认站点域'" disabled /></el-form-item>
+        <el-form-item label="模板站点"><el-input :model-value="siteLabel(testTemplate.site, '默认站点域')" disabled /></el-form-item>
         <el-form-item label="收件邮箱" required><el-input v-model="testForm.recipient" placeholder="name@example.com" /></el-form-item>
         <el-form-item label="发送语言"><el-select v-model="testForm.locale" style="width: 100%"><el-option v-for="content in testTemplate.contents" :key="content.locale" :label="localeLabel(content.locale)" :value="content.locale" /></el-select></el-form-item>
         <el-divider content-position="left">模板变量</el-divider>
@@ -181,15 +181,17 @@
 </template>
 
 <script setup lang="ts" name="EmailTemplate">
-import { addEmailTemplate, delEmailTemplate, getEmailTemplate, getEmailTemplateLocales, getEmailTemplateSites, getEmailTemplateTags, listEmailTemplate, testSendEmail, updateEmailTemplate } from '@/api/system/emailTemplate'
+import { addEmailTemplate, delEmailTemplate, getEmailTemplate, getEmailTemplateLocales, getEmailTemplateTags, listEmailTemplate, testSendEmail, updateEmailTemplate } from '@/api/system/emailTemplate'
+import { listCustomerSiteOptions } from '@/api/system/customerSite'
 import type { EmailTemplate, EmailTemplateContent, EmailTemplateLocaleOption, EmailTemplateQuery, EmailTemplateTagOption } from '@/api/system/emailTemplate'
+import type { CustomerSiteOption } from '@/api/system/customerSite'
 
 const { proxy } = getCurrentInstance() as any
 const { sys_normal_disable } = proxy.useDict('sys_normal_disable')
 
 const rows = ref<EmailTemplate[]>([])
 const tagOptions = ref<EmailTemplateTagOption[]>([])
-const siteOptions = ref<string[]>([])
+const siteOptions = ref<CustomerSiteOption[]>([])
 const localeOptions = ref<EmailTemplateLocaleOption[]>([])
 const loading = ref(false)
 const saving = ref(false)
@@ -226,6 +228,10 @@ function localeLabel(locale?: string) {
 function tagLabel(tag?: string) {
   const option = tagOptions.value.find((item: EmailTemplateTagOption) => item.code === tag)
   return option ? `${option.description} · ${option.code}` : (tag || '-')
+}
+
+function siteLabel(site?: string, emptyLabel = '-') {
+  return siteOptions.value.find(item => item.code === site)?.label || site || emptyLabel
 }
 
 function isContentComplete(content: EmailTemplateContent) {
@@ -353,7 +359,7 @@ async function submitTest() {
 }
 
 getEmailTemplateTags().then(response => { tagOptions.value = response.data || [] })
-getEmailTemplateSites().then(response => { siteOptions.value = response.data || [] })
+listCustomerSiteOptions().then(response => { siteOptions.value = response.data || [] })
 getEmailTemplateLocales().then(response => { localeOptions.value = response.data || [] })
 getList()
 </script>

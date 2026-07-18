@@ -3,7 +3,7 @@
     <el-form :model="queryParams" ref="queryRef" :inline="true" v-show="showSearch">
       <el-form-item label="站点" prop="site">
         <el-select v-model="queryParams.site" placeholder="站点" clearable style="width: 160px">
-          <el-option v-for="s in siteList" :key="s" :label="s" :value="s" />
+          <el-option v-for="site in siteOptions" :key="site.code" :label="site.label" :value="site.code" />
         </el-select>
       </el-form-item>
       <el-form-item label="套餐名称" prop="planName">
@@ -42,7 +42,9 @@
     <el-table v-loading="loading" :data="planList" @selection-change="handleSelectionChange">
       <el-table-column type="selection" width="55" align="center" />
       <el-table-column label="ID" align="center" prop="planId" width="80" />
-      <el-table-column label="站点" align="center" prop="site" min-width="120" />
+      <el-table-column label="站点" align="center" prop="site" min-width="120">
+        <template #default="scope">{{ siteLabel(scope.row.site) }}</template>
+      </el-table-column>
       <el-table-column label="套餐名称" align="center" prop="planName" min-width="140" />
       <el-table-column label="套餐描述" prop="description" min-width="180">
         <template #default="scope">
@@ -85,7 +87,7 @@
           <el-col :span="12">
             <el-form-item label="站点" prop="site">
               <el-select v-model="form.site" placeholder="请选择站点" style="width: 100%">
-                <el-option v-for="s in siteList" :key="s" :label="s" :value="s" />
+                <el-option v-for="site in siteOptions" :key="site.code" :label="site.label" :value="site.code" />
               </el-select>
             </el-form-item>
           </el-col>
@@ -204,13 +206,14 @@
 <script setup lang="ts" name="PaymentPlan">
 import { listPaymentPlan, getPaymentPlan, addPaymentPlan, updatePaymentPlan, delPaymentPlan } from '@/api/payment/plan'
 import type { PaymentPlan, PaymentPlanQuery } from '@/api/payment/plan'
-import { listAiEnums } from '@/api/ai/enums'
+import { listCustomerSiteOptions } from '@/api/system/customerSite'
+import type { CustomerSiteOption } from '@/api/system/customerSite'
 
 const { proxy } = getCurrentInstance()
 const { sys_normal_disable } = proxy.useDict('sys_normal_disable')
 
 const planList = ref<PaymentPlan[]>([])
-const siteList = ref<string[]>([])
+const siteOptions = ref<CustomerSiteOption[]>([])
 const open = ref(false)
 const loading = ref(true)
 const showSearch = ref(true)
@@ -343,12 +346,13 @@ function formatMoney(priceCent?: number, currency?: string) {
   return `${currency || 'USD'} ${(Number(priceCent || 0) / 100).toFixed(2)}`
 }
 
+function siteLabel(site?: string) {
+  return siteOptions.value.find(item => item.code === site)?.label || site || '-'
+}
+
 function loadEnums() {
-  listAiEnums().then(res => {
-    const data = res.data
-    if (data?.sites) {
-      siteList.value = data.sites
-    }
+  listCustomerSiteOptions().then(res => {
+    siteOptions.value = res.data || []
   }).catch(() => {})
 }
 

@@ -43,7 +43,7 @@
       <el-table-column label="分类ID" align="center" prop="categoryId" width="90" />
       <el-table-column label="分类名称" align="center" prop="categoryName" />
       <el-table-column label="站点" align="center" prop="site" width="130">
-        <template #default="scope">{{ scope.row.site || '-' }}</template>
+        <template #default="scope">{{ siteLabel(scope.row.site) }}</template>
       </el-table-column>
       <el-table-column v-if="activeSourceType === AiTemplateSourceTypeEnum.USER" label="用户ID" align="center" prop="userId" min-width="160" />
       <el-table-column label="媒体类型" align="center" prop="mediaType" width="100">
@@ -82,7 +82,7 @@
         </el-form-item>
         <el-form-item label="所属站点" prop="site">
           <el-select v-model="form.site" placeholder="请选择所属站点" filterable style="width: 100%">
-            <el-option v-for="site in siteOptions" :key="site" :label="site" :value="site" />
+            <el-option v-for="site in siteOptions" :key="site.code" :label="site.label" :value="site.code" />
           </el-select>
         </el-form-item>
         <el-form-item label="媒体类型" prop="mediaType">
@@ -114,16 +114,17 @@
 
 <script setup lang="ts" name="TemplateCategory">
 import { listTemplateCategory, getTemplateCategory, addTemplateCategory, updateTemplateCategory, delTemplateCategory } from '@/api/ai/templateCategory'
-import { listAiEnums } from '@/api/ai/enums'
+import { listCustomerSiteOptions } from '@/api/system/customerSite'
 import { AI_TEMPLATE_MEDIA_TYPE_OPTIONS, AiTemplateMediaTypeEnum, AiTemplateSourceTypeEnum, CommonStatusEnum } from '@/constants/ai'
 import type { AiTemplateCategory, TemplateCategoryQuery } from '@/api/ai/templateCategory'
 import type { AiTemplateSourceType } from '@/constants/ai'
+import type { CustomerSiteOption } from '@/api/system/customerSite'
 
 const { proxy } = getCurrentInstance()
 const { sys_normal_disable } = proxy.useDict('sys_normal_disable')
 
 const mediaTypeOptions = AI_TEMPLATE_MEDIA_TYPE_OPTIONS
-const siteOptions = ref<string[]>([])
+const siteOptions = ref<CustomerSiteOption[]>([])
 
 const activeSourceType = ref<AiTemplateSourceType>(AiTemplateSourceTypeEnum.SYSTEM)
 
@@ -158,6 +159,10 @@ const { queryParams, form, rules } = toRefs(data)
 
 function formatMediaType(value?: string) {
   return mediaTypeOptions.find(item => item.value === value)?.label || value || '-'
+}
+
+function siteLabel(site?: string) {
+  return siteOptions.value.find(item => item.code === site)?.label || site || '-'
 }
 
 function getList() {
@@ -267,8 +272,8 @@ function handleStatusChange(row: AiTemplateCategory) {
   }).catch(() => {})
 }
 
-listAiEnums().then(response => {
-  siteOptions.value = response.data?.allowedSites || []
+listCustomerSiteOptions().then(response => {
+  siteOptions.value = response.data || []
 })
 getList()
 </script>

@@ -8,7 +8,9 @@
         <el-input v-model="queryParams.userName" placeholder="请输入账号" clearable @keyup.enter="handleQuery" />
       </el-form-item>
       <el-form-item label="站点" prop="site">
-        <el-input v-model="queryParams.site" placeholder="请输入站点" clearable @keyup.enter="handleQuery" />
+        <el-select v-model="queryParams.site" placeholder="全部站点" clearable filterable style="width: 180px">
+          <el-option v-for="site in siteOptions" :key="site.code" :label="site.label" :value="site.code" />
+        </el-select>
       </el-form-item>
       <el-form-item label="邮箱" prop="email">
         <el-input v-model="queryParams.email" placeholder="请输入邮箱" clearable @keyup.enter="handleQuery" />
@@ -31,7 +33,9 @@
     <el-table v-loading="loading" :data="userList">
       <el-table-column label="用户ID" align="center" prop="userId" width="90" />
       <el-table-column label="账号" align="center" prop="userName" min-width="150" show-overflow-tooltip />
-      <el-table-column label="站点" align="center" prop="site" min-width="120" show-overflow-tooltip />
+      <el-table-column label="站点" align="center" prop="site" min-width="120" show-overflow-tooltip>
+        <template #default="scope">{{ siteLabel(scope.row.site) }}</template>
+      </el-table-column>
       <el-table-column label="邮箱" align="center" prop="email" min-width="180" show-overflow-tooltip />
       <el-table-column label="登录渠道" align="center" min-width="150">
         <template #default="scope">
@@ -77,7 +81,7 @@
       <el-descriptions :column="2" border>
         <el-descriptions-item label="用户ID">{{ detail.userId }}</el-descriptions-item>
         <el-descriptions-item label="账号">{{ detail.userName }}</el-descriptions-item>
-        <el-descriptions-item label="站点">{{ detail.site || '-' }}</el-descriptions-item>
+        <el-descriptions-item label="站点">{{ siteLabel(detail.site) }}</el-descriptions-item>
         <el-descriptions-item label="状态">
           <el-tag :type="detail.status === '0' ? 'success' : 'danger'" size="small">
             {{ detail.status === '0' ? '正常' : '停用' }}
@@ -147,6 +151,8 @@ import {
   changeCustomerUserStatus, deleteCustomerUser, editCustomerUserCredit, getCustomerUser, listCustomerUser,
   resetCustomerUserPassword, type CustomerUser, type CustomerUserQuery
 } from '@/api/system/customerUser'
+import { listCustomerSiteOptions } from '@/api/system/customerSite'
+import type { CustomerSiteOption } from '@/api/system/customerSite'
 
 const { proxy } = getCurrentInstance()
 const { sys_normal_disable } = proxy.useDict('sys_normal_disable')
@@ -154,6 +160,7 @@ const loading = ref(true)
 const showSearch = ref(true)
 const total = ref(0)
 const userList = ref<CustomerUser[]>([])
+const siteOptions = ref<CustomerSiteOption[]>([])
 const detailOpen = ref(false)
 const detail = ref<CustomerUser>({})
 const creditOpen = ref(false)
@@ -174,6 +181,10 @@ function handleQuery() { queryParams.value.pageNum = 1; getList() }
 function resetQuery() { proxy.resetForm('queryRef'); handleQuery() }
 function providerLabel(provider?: string) {
   return provider === 'wechat_miniapp' ? '微信小程序' : provider === 'google' ? 'Google' : provider || '未知'
+}
+
+function siteLabel(site?: string) {
+  return siteOptions.value.find(item => item.code === site)?.label || site || '-'
 }
 
 function handleDetail(row: CustomerUser) {
@@ -223,5 +234,6 @@ function handleDelete(row: CustomerUser) {
   }).catch(() => {})
 }
 
+listCustomerSiteOptions().then(response => { siteOptions.value = response.data || [] })
 getList()
 </script>

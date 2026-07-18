@@ -14,7 +14,7 @@
       </el-form-item>
       <el-form-item label="站点" prop="site">
         <el-select v-model="queryParams.site" placeholder="站点" clearable style="width: 160px">
-          <el-option v-for="s in siteList" :key="s" :label="s" :value="s" />
+          <el-option v-for="site in siteOptions" :key="site.code" :label="site.label" :value="site.code" />
         </el-select>
       </el-form-item>
       <el-form-item label="平台" prop="platformCode">
@@ -44,7 +44,9 @@
 
     <el-table v-loading="loading" :data="taskList">
       <el-table-column label="任务ID" align="center" prop="videoId" width="80" />
-      <el-table-column label="站点" align="center" prop="site" width="120" show-overflow-tooltip />
+      <el-table-column label="站点" align="center" prop="site" width="120" show-overflow-tooltip>
+        <template #default="scope">{{ siteLabel(scope.row.site) }}</template>
+      </el-table-column>
       <el-table-column label="用户ID" align="center" prop="userId" width="180" show-overflow-tooltip />
       <el-table-column label="状态" align="center" prop="status" width="100">
         <template #default="scope">
@@ -186,7 +188,9 @@
 <script setup lang="ts" name="VideoTask">
 import { listVideoTask, editVideoTaskStatus } from '@/api/ai/videoTask'
 import { listAiEnums } from '@/api/ai/enums'
+import { listCustomerSiteOptions } from '@/api/system/customerSite'
 import type { AiVideoTask, VideoTaskQuery } from '@/api/ai/videoTask'
+import type { CustomerSiteOption } from '@/api/system/customerSite'
 
 const { proxy } = getCurrentInstance()
 
@@ -199,7 +203,7 @@ const platformNameMap = ref<Record<number, string>>({})
 const modelNameMap = ref<Record<string, string>>({})
 const platformList = ref<Array<{ platformCode: number; platformName: string }>>([])
 const modelList = ref<Array<{ platformCode: number; modelCode: number; modelName: string }>>([])
-const siteList = ref<string[]>([])
+const siteOptions = ref<CustomerSiteOption[]>([])
 const dateRange = ref<string[]>([])
 
 const viewVisible = ref(false)
@@ -242,10 +246,14 @@ function loadEnums() {
       })
       modelNameMap.value = map
     }
-    if (data?.sites) {
-      siteList.value = data.sites
-    }
   }).catch(() => {})
+  listCustomerSiteOptions().then(res => {
+    siteOptions.value = res.data || []
+  }).catch(() => {})
+}
+
+function siteLabel(site?: string) {
+  return siteOptions.value.find(item => item.code === site)?.label || site || '-'
 }
 
 function getList() {
