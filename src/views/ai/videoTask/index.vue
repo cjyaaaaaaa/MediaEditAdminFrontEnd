@@ -253,7 +253,7 @@ function loadEnums() {
 }
 
 function siteLabel(site?: string) {
-  return siteOptions.value.find(item => item.code === site)?.label || site || '-'
+  return siteOptions.value.find((item: CustomerSiteOption) => item.code === site)?.label || site || '-'
 }
 
 function getList() {

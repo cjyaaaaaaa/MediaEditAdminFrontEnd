@@ -174,7 +174,7 @@ function tagLabel(tag?: string) {
 }
 
 function siteLabel(site?: string, emptyLabel = '-') {
-  return siteOptions.value.find(item => item.code === site)?.label || site || emptyLabel
+  return siteOptions.value.find((item: CustomerSiteOption) => item.code === site)?.label || site || emptyLabel
 }
 
 function localeLabel(requested?: string, actual?: string) {
