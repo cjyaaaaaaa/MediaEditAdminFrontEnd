@@ -12,6 +12,7 @@ export interface AiEnumsResult {
   models: AiModelEnumOption[]
   modelTypes: AiModelTypeOption[]
   billingTypes: AiBillingType[]
+  allowedSites: string[]
   sites: string[]
 }
 

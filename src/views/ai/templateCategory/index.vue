@@ -80,6 +80,11 @@
         <el-form-item label="分类名称" prop="categoryName">
           <el-input v-model="form.categoryName" placeholder="请输入分类名称" />
         </el-form-item>
+        <el-form-item label="所属站点" prop="site">
+          <el-select v-model="form.site" placeholder="请选择所属站点" filterable style="width: 100%">
+            <el-option v-for="site in siteOptions" :key="site" :label="site" :value="site" />
+          </el-select>
+        </el-form-item>
         <el-form-item label="媒体类型" prop="mediaType">
           <el-radio-group v-model="form.mediaType">
             <el-radio-button v-for="item in mediaTypeOptions" :key="item.value" :value="item.value">{{ item.label }}</el-radio-button>
@@ -109,6 +114,7 @@
 
 <script setup lang="ts" name="TemplateCategory">
 import { listTemplateCategory, getTemplateCategory, addTemplateCategory, updateTemplateCategory, delTemplateCategory } from '@/api/ai/templateCategory'
+import { listAiEnums } from '@/api/ai/enums'
 import { AI_TEMPLATE_MEDIA_TYPE_OPTIONS, AiTemplateMediaTypeEnum, AiTemplateSourceTypeEnum, CommonStatusEnum } from '@/constants/ai'
 import type { AiTemplateCategory, TemplateCategoryQuery } from '@/api/ai/templateCategory'
 import type { AiTemplateSourceType } from '@/constants/ai'
@@ -117,6 +123,7 @@ const { proxy } = getCurrentInstance()
 const { sys_normal_disable } = proxy.useDict('sys_normal_disable')
 
 const mediaTypeOptions = AI_TEMPLATE_MEDIA_TYPE_OPTIONS
+const siteOptions = ref<string[]>([])
 
 const activeSourceType = ref<AiTemplateSourceType>(AiTemplateSourceTypeEnum.SYSTEM)
 
@@ -142,6 +149,7 @@ const data = reactive({
   } as TemplateCategoryQuery,
   rules: {
     categoryName: [{ required: true, message: '分类名称不能为空', trigger: 'blur' }],
+    site: [{ required: true, message: '请选择所属站点', trigger: 'change' }],
     mediaType: [{ required: true, message: '请选择媒体类型', trigger: 'change' }]
   }
 })
@@ -170,6 +178,7 @@ function cancel() {
 function reset() {
   form.value = {
     categoryId: undefined,
+    site: undefined,
     categoryName: undefined,
     sourceType: activeSourceType.value,
     mediaType: AiTemplateMediaTypeEnum.IMAGE,
@@ -258,6 +267,9 @@ function handleStatusChange(row: AiTemplateCategory) {
   }).catch(() => {})
 }
 
+listAiEnums().then(response => {
+  siteOptions.value = response.data?.allowedSites || []
+})
 getList()
 </script>
 

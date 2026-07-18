@@ -46,17 +46,20 @@
     <el-table v-loading="loading" :data="templateList" @selection-change="handleSelectionChange">
       <el-table-column type="selection" width="55" align="center" />
       <el-table-column label="ID" align="center" prop="templateId" width="80" />
-      <el-table-column label="封面" align="center" width="92">
+      <el-table-column label="封面" align="center" width="300">
         <template #default="scope">
-          <el-badge v-if="firstCover(scope.row.coverUrl)" :value="coverCount(scope.row.coverUrl)" :hidden="coverCount(scope.row.coverUrl) <= 1" type="info">
+          <div v-if="coverPreviewList(scope.row.coverUrl).length" class="table-cover-list">
             <el-image
-              :src="resolveResourceUrl(firstCover(scope.row.coverUrl))"
+              v-for="(url, index) in coverPreviewList(scope.row.coverUrl)"
+              :key="url"
+              :src="url"
               :preview-src-list="coverPreviewList(scope.row.coverUrl)"
+              :initial-index="index"
               preview-teleported
-              fit="cover"
+              fit="contain"
               class="table-cover"
             />
-          </el-badge>
+          </div>
           <span v-else>-</span>
         </template>
       </el-table-column>
@@ -103,6 +106,27 @@
       <el-form ref="templateRef" :model="form" :rules="rules" label-width="100px">
         <el-row :gutter="16">
           <el-col :span="12">
+            <el-form-item label="所属站点" prop="site">
+              <el-select v-model="form.site" placeholder="请选择所属站点" filterable style="width: 100%" @change="handleFormSiteChange">
+                <el-option v-for="site in siteOptions" :key="site" :label="site" :value="site" />
+              </el-select>
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="分类" prop="categoryId">
+              <el-select
+                v-model="form.categoryId"
+                :placeholder="form.site ? '可不选择分类' : '请先选择所属站点'"
+                :disabled="!form.site"
+                clearable
+                style="width: 100%"
+                @change="handleFormCategoryChange"
+              >
+                <el-option v-for="item in formCategoryOptions" :key="item.categoryId" :label="formatCategoryLabel(item)" :value="item.categoryId" />
+              </el-select>
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
             <el-form-item label="模板名称" prop="templateName">
               <el-input v-model="form.templateName" placeholder="请输入模板名称" />
             </el-form-item>
@@ -112,13 +136,6 @@
               <el-radio-group v-model="form.mediaType" @change="handleFormTypeChange">
                 <el-radio-button v-for="item in mediaTypeOptions" :key="item.value" :value="item.value">{{ item.label }}</el-radio-button>
               </el-radio-group>
-            </el-form-item>
-          </el-col>
-          <el-col :span="12">
-            <el-form-item label="分类" prop="categoryId">
-              <el-select v-model="form.categoryId" placeholder="可不选择分类" clearable style="width: 100%">
-                <el-option v-for="item in formCategoryOptions" :key="item.categoryId" :label="formatCategoryLabel(item)" :value="item.categoryId" />
-              </el-select>
             </el-form-item>
           </el-col>
           <el-col :span="12">
@@ -135,7 +152,13 @@
           </el-col>
           <el-col :span="24">
             <el-form-item label="封面图" prop="coverUrl">
-              <image-upload v-model="coverUploadValue" action="/oss/uploadToDir" :data="{ directory: 'ai-template' }" :limit="5" />
+              <image-upload
+                v-model="coverUploadValue"
+                action="/system/object/admin/upload"
+                :data="{ directory: 'ai-template-cover' }"
+                :limit="5"
+                class="template-cover-upload"
+              />
             </el-form-item>
           </el-col>
           <el-col :span="24">
@@ -176,7 +199,7 @@
           :src="url"
           :preview-src-list="coverPreviewList(previewForm.coverUrl)"
           preview-teleported
-          fit="cover"
+          fit="contain"
         />
       </div>
     </el-dialog>
@@ -186,6 +209,7 @@
 <script setup lang="ts" name="AiTemplate">
 import { listTemplate, getTemplate, addTemplate, updateTemplate, delTemplate } from '@/api/ai/template'
 import { listTemplateCategory } from '@/api/ai/templateCategory'
+import { listAiEnums } from '@/api/ai/enums'
 import { resolveResourceUrl } from '@/utils/objectStorageUpload'
 import { AI_TEMPLATE_MEDIA_TYPE_OPTIONS, AI_TEMPLATE_SOURCE_TYPE_OPTIONS, AiTemplateMediaTypeEnum, AiTemplateSourceTypeEnum, CommonStatusEnum } from '@/constants/ai'
 import type { AiTemplate, TemplateQuery } from '@/api/ai/template'
@@ -196,6 +220,7 @@ const { proxy } = getCurrentInstance()
 const { sys_normal_disable } = proxy.useDict('sys_normal_disable')
 
 const mediaTypeOptions = AI_TEMPLATE_MEDIA_TYPE_OPTIONS
+const siteOptions = ref<string[]>([])
 
 const sourceTypeOptions = AI_TEMPLATE_SOURCE_TYPE_OPTIONS
 const activeSourceType = ref<AiTemplateSourceType>(AiTemplateSourceTypeEnum.SYSTEM)
@@ -226,6 +251,7 @@ const data = reactive({
   } as TemplateQuery,
   rules: {
     templateName: [{ required: true, message: '模板名称不能为空', trigger: 'blur' }],
+    site: [{ required: true, message: '请选择所属站点', trigger: 'change' }],
     mediaType: [{ required: true, message: '请选择媒体类型', trigger: 'change' }],
     prompt: [{ required: true, message: 'Prompt不能为空', trigger: 'blur' }]
   }
@@ -241,9 +267,9 @@ const coverUploadValue = computed({
 })
 
 const formCategoryOptions = computed(() => categoryOptions.value.filter(item => {
-  const mediaMatched = !form.value.mediaType || item.mediaType === form.value.mediaType
+  const siteMatched = !form.value.site || item.site === form.value.site
   const sourceMatched = !form.value.sourceType || item.sourceType === form.value.sourceType
-  return mediaMatched && sourceMatched
+  return siteMatched && sourceMatched
 }))
 
 const queryCategoryOptions = computed(() => categoryOptions.value.filter(item => {
@@ -257,16 +283,8 @@ function normalizeCoverValue(value?: string | string[]) {
   return Array.isArray(value) ? value.filter(Boolean) : value.split(',').map(item => item.trim()).filter(Boolean)
 }
 
-function firstCover(value?: string[] | string) {
-  return normalizeCoverValue(value)[0]
-}
-
 function coverPreviewList(value?: string[] | string) {
   return normalizeCoverValue(value).map(item => resolveResourceUrl(item))
-}
-
-function coverCount(value?: string[] | string) {
-  return normalizeCoverValue(value).length
 }
 
 function formatMediaType(value?: string) {
@@ -307,6 +325,7 @@ function cancel() {
 function reset() {
   form.value = {
     templateId: undefined,
+    site: undefined,
     categoryId: undefined,
     templateName: undefined,
     sourceType: activeSourceType.value,
@@ -333,6 +352,20 @@ function handleQueryTypeChange() {
 }
 
 function handleFormTypeChange() {
+  const selectedCategory = categoryOptions.value.find(item => item.categoryId === form.value.categoryId)
+  if (selectedCategory && selectedCategory.mediaType !== form.value.mediaType) {
+    form.value.categoryId = undefined
+  }
+}
+
+function handleFormCategoryChange(categoryId?: string) {
+  const selectedCategory = categoryOptions.value.find(item => item.categoryId === categoryId)
+  if (selectedCategory?.mediaType) {
+    form.value.mediaType = selectedCategory.mediaType
+  }
+}
+
+function handleFormSiteChange() {
   const exists = formCategoryOptions.value.some(item => item.categoryId === form.value.categoryId)
   if (!exists) {
     form.value.categoryId = undefined
@@ -425,6 +458,9 @@ function handleStatusChange(row: AiTemplate) {
   }).catch(() => {})
 }
 
+listAiEnums().then(response => {
+  siteOptions.value = response.data?.allowedSites || []
+})
 loadCategories()
 getList()
 </script>
@@ -445,11 +481,26 @@ getList()
   width: 140px;
   height: 140px;
   border-radius: 8px;
+  background-color: var(--el-fill-color-light);
+}
+
+.table-cover-list {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;
+  padding: 4px 0;
 }
 
 .table-cover {
-  width: 56px;
-  height: 56px;
+  width: 48px;
+  height: 48px;
   border-radius: 6px;
+  background-color: var(--el-fill-color-light);
+}
+
+.template-cover-upload :deep(.el-upload-list__item-thumbnail) {
+  object-fit: contain;
+  background-color: var(--el-fill-color-light);
 }
 </style>

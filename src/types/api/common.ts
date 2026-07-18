@@ -72,8 +72,8 @@ export interface TableShowColumns {
   visible: boolean
 }
 
-/** 文件上传响应数据 */
-export interface UploadFileResult extends AjaxResult {
+/** 文件上传数据 */
+export interface UploadFileData {
   /** 文件名称（包含路径） */
   fileName: string
   /** 文件名称（不含路径） */
@@ -82,4 +82,11 @@ export interface UploadFileResult extends AjaxResult {
   url: string
   /** 原始文件名称 */
   originalFilename: string
+  /** 上传目录 */
+  directory: string
+  /** 文件大小（字节） */
+  size: number
 }
+
+/** 文件上传响应数据 */
+export interface UploadFileResult extends AjaxResult<UploadFileData> {}

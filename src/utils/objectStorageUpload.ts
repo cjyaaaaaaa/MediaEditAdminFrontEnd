@@ -1,11 +1,12 @@
 import { isExternal } from '@/utils/validate'
-import type { UploadFileResult } from '@/types/api/common'
+import type { UploadFileData, UploadFileResult } from '@/types/api/common'
 
 /**
  * Parse upload API response to a browser-loadable URL (object storage absolute or relative + API base).
  */
-export function resolveUploadPublicUrl(res: Pick<UploadFileResult, 'url' | 'fileName'>): string {
-  const raw = res.url || res.fileName
+export function resolveUploadPublicUrl(res: UploadFileResult | UploadFileData): string {
+  const payload = 'code' in res ? res.data : res
+  const raw = payload?.url || payload?.fileName
   if (!raw) {
     return ''
   }
@@ -49,7 +50,7 @@ export function resolveResourceUrl(raw: string | undefined | null): string {
   if (s.startsWith('/profile') || s.startsWith('profile/')) {
     return base + (s.startsWith('/') ? s : `/${s}`)
   }
-  // Root paths like /assets/... (Vite default avatar import) ¡ª do not prefix API
+  // Root paths like /assets/... (Vite default avatar import) -- do not prefix API
   if (s.startsWith('/')) {
     return s
   }

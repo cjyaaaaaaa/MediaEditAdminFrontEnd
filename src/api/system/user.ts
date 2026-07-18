@@ -1,6 +1,6 @@
 import request from '@/utils/request'
 import { parseStrEmpty } from "@/utils/ruoyi"
-import type { UserQueryParams, UserFormDataResult, UserProfileResult, UserAuthRoleResult, UserProfileAvatarResult, SysUser, SysUserRole, SysUserRoles, AjaxResult, TableDataInfo, TreeSelect } from '@/types'
+import type { UserQueryParams, UserFormDataResult, UserProfileResult, UserAuthRoleResult, SysUser, SysUserRole, SysUserRoles, AjaxResult, TableDataInfo, TreeSelect } from '@/types'
 
 // 查询用户列表
 export function listUser(query: UserQueryParams): Promise<TableDataInfo<SysUser[]>> {
@@ -101,13 +101,21 @@ export function updateUserPwd(oldPassword: string, newPassword: string): Promise
   })
 }
 
-// 用户头像上传（后端写入对象存储目录 avatar）
-export function uploadAvatar(data: FormData): Promise<UserProfileAvatarResult> {
+// 更新当前用户头像地址
+export function updateAvatar(avatar: string): Promise<AjaxResult> {
   return request({
     url: '/system/user/profile/avatar',
-    method: 'post',
-    data,
-    headers: { repeatSubmit: false }
+    method: 'put',
+    data: { avatar }
+  })
+}
+
+// 读取当前用户头像图片（供 Canvas 裁剪器规避对象存储跨域限制）
+export function getCurrentAvatarImage(): Promise<Blob> {
+  return request({
+    url: '/system/user/profile/avatar/image',
+    method: 'get',
+    responseType: 'blob'
   })
 }
 

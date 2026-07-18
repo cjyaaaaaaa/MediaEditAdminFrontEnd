@@ -61,7 +61,8 @@
 <script setup lang="ts">
 import "vue-cropper/dist/index.css"
 import { VueCropper } from "vue-cropper"
-import { uploadAvatar } from "@/api/system/user"
+import { uploadAdminObject } from "@/api/system/object"
+import { getCurrentAvatarImage, updateAvatar } from "@/api/system/user"
 import useUserStore from "@/store/modules/user"
 import { resolveResourceUrl } from "@/utils/objectStorageUpload"
 
@@ -93,8 +94,8 @@ function revokeCropperBlob() {
 }
 
 /**
- * vue-cropper 在 canvas 中绘制外链图片需跨域；对象存储常无 CORS，直接填 https 会空白。
- * 打开弹窗时尽量拉成 blob: 供裁剪；失败再回退原 URL。
+ * vue-cropper 在 canvas 中绘制外链图片需跨域授权。
+ * 对象存储头像由后端按当前登录用户读取，再转为 blob: 供裁剪器使用。
  */
 async function prepareImageForCropper() {
   revokeCropperBlob()
@@ -112,11 +113,10 @@ async function prepareImageForCropper() {
     return
   }
   try {
-    const res = await fetch(src, { mode: 'cors', credentials: 'omit' })
-    if (!res.ok) {
-      throw new Error('fetch avatar failed')
+    const blob = await getCurrentAvatarImage()
+    if (!blob || blob.size === 0) {
+      throw new Error('invalid avatar image')
     }
-    const blob = await res.blob()
     cropperBlobUrl = URL.createObjectURL(blob)
     options.img = cropperBlobUrl
   } catch {
@@ -174,21 +174,18 @@ function beforeUpload(file: File) {
   }
 }
 
-function pickImgUrl(res: Record<string, unknown>): string {
-  const u = res?.imgUrl
-  return typeof u === 'string' ? u : ''
-}
-
 function uploadImg() {
   proxy.$refs.cropper.getCropBlob((data: Blob) => {
     const formData = new FormData()
-    formData.append("avatarfile", data, options.filename)
-    uploadAvatar(formData).then((response) => {
-      const raw = pickImgUrl(response as unknown as Record<string, unknown>)
+    formData.append("file", data, options.filename)
+    formData.append("directory", "admin-avatar")
+    uploadAdminObject(formData).then(async (response) => {
+      const raw = response.data?.url || response.data?.fileName || ''
       if (!raw) {
         proxy.$modal.msgError('未获取到头像地址')
         return
       }
+      await updateAvatar(raw)
       const display = resolveResourceUrl(raw)
       if (!display) {
         proxy.$modal.msgError('未获取到头像地址')

@@ -38,7 +38,7 @@ import { resolveUploadPublicUrl } from "@/utils/objectStorageUpload"
 const { proxy } = getCurrentInstance()
 
 const quillEditorRef = ref()
-const uploadUrl = ref(import.meta.env.VITE_APP_BASE_API + "/oss/uploadToDir")
+const uploadUrl = ref(import.meta.env.VITE_APP_BASE_API + "/system/object/admin/upload")
 const uploadData = { directory: "rich-text" }
 const headers = ref({
   Authorization: "Bearer " + getToken()

@@ -92,12 +92,6 @@ export interface UserProfileResult extends AjaxResult {
   postGroup: string
 }
 
-/** 用户头像上传响应 */
-export interface UserProfileAvatarResult extends AjaxResult {
-  /** 头像地址 */
-  imgUrl: string
-}
-
 /** 用户授权角色响应 */
 export interface UserAuthRoleResult extends AjaxResult {
   /** 用户信息 */
