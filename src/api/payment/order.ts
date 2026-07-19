@@ -7,6 +7,7 @@ export interface PaymentOrder {
   orderNo?: string
   userId?: string
   userName?: string
+  userEmail?: string
   planId?: string
   planName?: string
   billingType?: string
@@ -39,6 +40,7 @@ export interface PaymentOrderQuery {
   orderNo?: string
   userId?: string
   userName?: string
+  paymentProvider?: string
   billingType?: string
   orderStatus?: string
 }

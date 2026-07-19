@@ -20,6 +20,11 @@
         <el-form-item label="用户ID" prop="userId">
           <el-input v-model="queryParams.userId" placeholder="输入用户ID" clearable style="width: 180px" @keyup.enter="handleQuery" />
         </el-form-item>
+        <el-form-item label="支付渠道" prop="paymentProvider">
+          <el-select v-model="queryParams.paymentProvider" placeholder="全部渠道" clearable style="width: 150px">
+            <el-option v-for="provider in paymentProviderOptions" :key="provider.value" :label="provider.label" :value="provider.value" />
+          </el-select>
+        </el-form-item>
         <el-form-item label="计费类型" prop="billingType">
           <el-select v-model="queryParams.billingType" placeholder="全部类型" clearable style="width: 150px">
             <el-option label="一次性" value="one_time" />
@@ -64,16 +69,18 @@
             <div class="secondary-text mode-text">{{ paymentModeLabel(scope.row.paymentMode) }}</div>
           </template>
         </el-table-column>
-        <el-table-column label="用户" min-width="150">
+        <el-table-column label="用户" min-width="210">
           <template #default="scope">
             <div class="primary-text">{{ scope.row.userName || '未设置用户名' }}</div>
             <div class="secondary-text">ID {{ scope.row.userId }}</div>
+            <div class="secondary-text">{{ scope.row.userEmail || '未设置邮箱' }}</div>
           </template>
         </el-table-column>
         <el-table-column label="套餐" min-width="160">
           <template #default="scope">
             <div class="primary-text">{{ scope.row.planName }}</div>
-            <el-tag size="small" effect="plain" type="info">{{ billingTypeLabel(scope.row.billingType) }}</el-tag>
+            <div class="secondary-text">套餐ID {{ scope.row.planId || '-' }}</div>
+            <el-tag size="small" effect="light" :type="billingTypeTagType(scope.row.billingType)">{{ billingTypeLabel(scope.row.billingType) }}</el-tag>
           </template>
         </el-table-column>
         <el-table-column label="订单金额" width="130">
@@ -85,11 +92,8 @@
         <el-table-column label="关联订阅ID" min-width="150">
           <template #default="scope"><PaymentIdentifier :value="scope.row.subscriptionId" /></template>
         </el-table-column>
-        <el-table-column label="平台订阅 / 发票" min-width="220">
-          <template #default="scope">
-            <PaymentIdentifier :value="scope.row.providerSubscriptionId" />
-            <div class="secondary-identifier"><PaymentIdentifier :value="scope.row.providerInvoiceId" /></div>
-          </template>
+        <el-table-column label="平台订阅ID" min-width="220">
+          <template #default="scope"><PaymentIdentifier :value="scope.row.providerSubscriptionId" /></template>
         </el-table-column>
         <el-table-column label="平台客户" min-width="170">
           <template #default="scope"><PaymentIdentifier :value="scope.row.providerCustomerId" /></template>
@@ -138,7 +142,12 @@
           <span v-else>-</span>
         </el-descriptions-item>
         <el-descriptions-item label="用户">{{ detail.userName || '-' }}（{{ detail.userId }}）</el-descriptions-item>
-        <el-descriptions-item label="套餐">{{ detail.planName }}（{{ billingTypeLabel(detail.billingType) }}）</el-descriptions-item>
+        <el-descriptions-item label="用户邮箱">{{ detail.userEmail || '未设置邮箱' }}</el-descriptions-item>
+        <el-descriptions-item label="套餐">
+          {{ detail.planName }}
+          <el-tag class="billing-type-tag" size="small" effect="light" :type="billingTypeTagType(detail.billingType)">{{ billingTypeLabel(detail.billingType) }}</el-tag>
+        </el-descriptions-item>
+        <el-descriptions-item label="套餐ID"><PaymentIdentifier :value="detail.planId" /></el-descriptions-item>
         <el-descriptions-item label="订阅ID"><PaymentIdentifier :value="detail.subscriptionId" /></el-descriptions-item>
         <el-descriptions-item label="订单金额"><b>{{ formatMoney(detail.amountCent, detail.currency) }}</b></el-descriptions-item>
         <el-descriptions-item label="到账积分">{{ Number(detail.creditAmount || 0).toLocaleString() }}</el-descriptions-item>
@@ -146,7 +155,6 @@
         <el-descriptions-item label="支付对象ID"><PaymentIdentifier :value="detail.providerOrderId" /></el-descriptions-item>
         <el-descriptions-item label="Customer ID"><PaymentIdentifier :value="detail.providerCustomerId" /></el-descriptions-item>
         <el-descriptions-item label="Subscription ID"><PaymentIdentifier :value="detail.providerSubscriptionId" /></el-descriptions-item>
-        <el-descriptions-item label="Invoice ID"><PaymentIdentifier :value="detail.providerInvoiceId" /></el-descriptions-item>
         <el-descriptions-item label="Event ID"><PaymentIdentifier :value="detail.providerEventId" /></el-descriptions-item>
         <el-descriptions-item label="创建时间">{{ parseTime(detail.createTime) }}</el-descriptions-item>
         <el-descriptions-item label="更新时间">{{ detail.updateTime ? parseTime(detail.updateTime) : '-' }}</el-descriptions-item>
@@ -165,7 +173,7 @@ import type { PaymentOrder, PaymentOrderQuery } from '@/api/payment/order'
 import { listCustomerSiteOptions } from '@/api/system/customerSite'
 import type { CustomerSiteOption } from '@/api/system/customerSite'
 import PaymentIdentifier from '../components/PaymentIdentifier.vue'
-import { billingTypeLabel, formatMoney, orderStatus, paymentModeLabel, providerLabel, providerTagType, transactionStatus } from '../common'
+import { billingTypeLabel, billingTypeTagType, formatMoney, orderStatus, paymentModeLabel, paymentProviderOptions, providerLabel, providerTagType, transactionStatus } from '../common'
 
 const { proxy } = getCurrentInstance() as any
 const orderList = ref<PaymentOrder[]>([])
@@ -215,9 +223,9 @@ getList()
 .table-toolbar { display: flex; align-items: center; justify-content: space-between; min-height: 58px; }
 .table-summary, .secondary-text { color: var(--el-text-color-secondary); font-size: 12px; }
 .mode-text { margin-top: 5px; }
-.secondary-identifier { margin-top: 4px; }
 .primary-text { margin-bottom: 4px; color: var(--el-text-color-primary); font-weight: 600; }
 .money-text { color: var(--el-text-color-primary); font-weight: 600; }
+.billing-type-tag { margin-left: 6px; }
 .detail-hero { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; padding: 16px; border: 1px solid var(--el-border-color-lighter); border-radius: 8px; background: var(--el-fill-color-light); }
 .detail-caption { margin-bottom: 6px; color: var(--el-text-color-secondary); font-size: 12px; }
 </style>

@@ -62,6 +62,12 @@ export function billingTypeLabel(type?: string) {
   return type === 'subscription' ? '订阅' : type === 'one_time' ? '一次性' : type || '-'
 }
 
+export function billingTypeTagType(type?: string): PaymentTagType {
+  if (type === 'subscription') return 'primary'
+  if (type === 'one_time') return 'success'
+  return 'info'
+}
+
 export function paymentModeLabel(mode?: string) {
   return mode ? paymentModes[mode] || mode : '-'
 }
