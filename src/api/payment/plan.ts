@@ -9,6 +9,8 @@ export interface PaymentPlanProvider {
   providerPriceId?: string
   providerConfig?: string
   status?: string
+  createTime?: string
+  updateTime?: string
   remark?: string
 }
 
@@ -25,6 +27,8 @@ export interface PaymentPlan {
   intervalCount?: number
   sortOrder?: number
   status?: string
+  createTime?: string
+  updateTime?: string
   remark?: string
   providers?: PaymentPlanProvider[]
 }

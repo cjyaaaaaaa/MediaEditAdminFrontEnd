@@ -3,6 +3,7 @@ import type { AjaxResult, TableDataInfo } from '@/types'
 
 export interface UserSubscription {
   subscriptionId?: string
+  site?: string
   userId?: string
   userName?: string
   planId?: string
@@ -24,6 +25,7 @@ export interface UserSubscription {
 export interface UserSubscriptionQuery {
   pageNum?: number
   pageSize?: number
+  site?: string
   userId?: string
   userName?: string
   paymentProvider?: string

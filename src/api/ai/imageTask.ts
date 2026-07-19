@@ -24,6 +24,7 @@ export interface AiImageTask {
   count?: number
   media?: AiMediaAsset
   errorInfo?: string
+  note?: string
   createTime?: string
   updateTime?: string
 }

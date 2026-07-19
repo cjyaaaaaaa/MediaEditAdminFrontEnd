@@ -24,6 +24,7 @@ export interface AiVideoTask {
   resultMediaId?: string
   media?: AiMediaAsset
   errorInfo?: string
+  note?: string
   createTime?: string
   updateTime?: string
 }

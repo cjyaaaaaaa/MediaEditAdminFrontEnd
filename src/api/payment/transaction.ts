@@ -3,6 +3,7 @@ import type { AjaxResult, TableDataInfo } from '@/types'
 
 export interface PaymentTransaction {
   transactionId?: string
+  site?: string
   orderId?: string
   orderNo?: string
   paymentProvider?: string
@@ -28,6 +29,7 @@ export interface PaymentTransaction {
 export interface PaymentTransactionQuery {
   pageNum?: number
   pageSize?: number
+  site?: string
   orderNo?: string
   paymentProvider?: string
   providerSubscriptionId?: string

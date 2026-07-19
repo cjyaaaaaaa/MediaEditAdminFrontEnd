@@ -65,14 +65,19 @@
           <span>{{ platformNameMap[scope.row.platformCode] || scope.row.platformCode }}</span>
         </template>
       </el-table-column>
-      <el-table-column label="模型" align="center" width="160" show-overflow-tooltip>
+      <el-table-column label="模型" align="center" width="160">
         <template #default="scope">
-          <span>{{ modelNameMap[`${scope.row.platformCode}_${scope.row.modelCode}`] || scope.row.modelCode }}</span>
+          <span class="model-name">{{ modelNameMap[`${scope.row.platformCode}_${scope.row.modelCode}`] || scope.row.modelCode }}</span>
         </template>
       </el-table-column>
       <el-table-column label="Prompt" align="center" min-width="200" show-overflow-tooltip>
         <template #default="scope">
           <span @dblclick="copyText(scope.row.prompt)" style="cursor: pointer">{{ scope.row.prompt }}</span>
+        </template>
+      </el-table-column>
+      <el-table-column label="用户备注" align="center" prop="note" min-width="180" show-overflow-tooltip>
+        <template #default="scope">
+          <span @dblclick="copyText(scope.row.note)" style="cursor: pointer">{{ scope.row.note || '-' }}</span>
         </template>
       </el-table-column>
       <el-table-column label="参考图" align="center" width="100">
@@ -345,6 +350,13 @@ getList()
   border-radius: 10px;
   background: var(--el-fill-color-extra-light);
   text-align: left;
+}
+
+.model-name {
+  display: block;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  line-height: 1.5;
 }
 
 .media-meta-item {

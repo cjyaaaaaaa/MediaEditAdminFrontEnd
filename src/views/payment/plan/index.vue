@@ -1,6 +1,14 @@
 <template>
-  <div class="app-container">
-    <el-form :model="queryParams" ref="queryRef" :inline="true" v-show="showSearch">
+  <div class="app-container payment-page">
+    <div class="page-heading">
+      <div>
+        <h2>支付套餐</h2>
+        <p>统一维护一次性与订阅商品，以及各支付渠道对应的商品配置。</p>
+      </div>
+    </div>
+
+    <el-card v-show="showSearch" class="filter-card" shadow="never">
+    <el-form :model="queryParams" ref="queryRef" :inline="true" label-position="top">
       <el-form-item label="站点" prop="site">
         <el-select v-model="queryParams.site" placeholder="站点" clearable style="width: 160px">
           <el-option v-for="site in siteOptions" :key="site.code" :label="site.label" :value="site.code" />
@@ -25,8 +33,10 @@
         <el-button icon="Refresh" @click="resetQuery">重置</el-button>
       </el-form-item>
     </el-form>
+    </el-card>
 
-    <el-row :gutter="10" class="mb8">
+    <el-card shadow="never" class="table-card">
+    <el-row :gutter="10" class="table-toolbar">
       <el-col :span="1.5">
         <el-button type="primary" plain icon="Plus" @click="handleAdd" v-hasPermi="['payment:plan:add']">新增</el-button>
       </el-col>
@@ -36,12 +46,15 @@
       <el-col :span="1.5">
         <el-button type="danger" plain icon="Delete" :disabled="multiple" @click="handleDelete" v-hasPermi="['payment:plan:remove']">删除</el-button>
       </el-col>
+      <div class="toolbar-spacer" />
       <right-toolbar v-model:showSearch="showSearch" @queryTable="getList" />
     </el-row>
 
     <el-table v-loading="loading" :data="planList" @selection-change="handleSelectionChange">
       <el-table-column type="selection" width="55" align="center" />
-      <el-table-column label="ID" align="center" prop="planId" width="80" />
+      <el-table-column label="套餐ID" width="150" fixed="left">
+        <template #default="scope"><PaymentIdentifier :value="scope.row.planId" /></template>
+      </el-table-column>
       <el-table-column label="站点" align="center" prop="site" min-width="120">
         <template #default="scope">{{ siteLabel(scope.row.site) }}</template>
       </el-table-column>
@@ -52,7 +65,10 @@
         </template>
       </el-table-column>
       <el-table-column label="计费类型" align="center" prop="billingType" width="100">
-        <template #default="scope">{{ scope.row.billingType === 'subscription' ? '订阅' : '一次性' }}</template>
+        <template #default="scope"><el-tag effect="plain" type="info">{{ billingTypeLabel(scope.row.billingType) }}</el-tag></template>
+      </el-table-column>
+      <el-table-column label="订阅周期" align="center" width="110">
+        <template #default="scope">{{ scope.row.billingType === 'subscription' ? intervalLabel(scope.row.intervalUnit, scope.row.intervalCount) : '-' }}</template>
       </el-table-column>
       <el-table-column label="价格" align="center" width="120">
         <template #default="scope">{{ formatMoney(scope.row.priceCent, scope.row.currency) }}</template>
@@ -61,8 +77,17 @@
       <el-table-column label="渠道" align="center" min-width="160">
         <template #default="scope">
           <el-tag v-for="item in scope.row.providers || []" :key="item.planProviderId || item.paymentProvider" class="mr4">
-            {{ item.paymentProvider }}
+            {{ providerLabel(item.paymentProvider) }}
           </el-tag>
+        </template>
+      </el-table-column>
+      <el-table-column label="渠道商品 / 价格" min-width="240">
+        <template #default="scope">
+          <div v-for="item in scope.row.providers || []" :key="`${item.paymentProvider}-${item.planProviderId || item.providerProductId || item.providerPriceId}`" class="provider-id-line">
+            <span class="secondary-text">{{ providerLabel(item.paymentProvider) }}</span>
+            <PaymentIdentifier :value="item.providerProductId || item.providerPriceId" />
+          </div>
+          <span v-if="!scope.row.providers?.length" class="secondary-text">-</span>
         </template>
       </el-table-column>
       <el-table-column label="排序" align="center" prop="sortOrder" width="80" />
@@ -71,15 +96,20 @@
           <dict-tag :options="sys_normal_disable" :value="scope.row.status" />
         </template>
       </el-table-column>
+      <el-table-column label="更新时间" width="170">
+        <template #default="scope">{{ scope.row.updateTime ? parseTime(scope.row.updateTime) : parseTime(scope.row.createTime) }}</template>
+      </el-table-column>
       <el-table-column label="操作" width="160" align="center">
         <template #default="scope">
           <el-button link type="primary" icon="Edit" @click="handleUpdate(scope.row)" v-hasPermi="['payment:plan:edit']">修改</el-button>
           <el-button link type="primary" icon="Delete" @click="handleDelete(scope.row)" v-hasPermi="['payment:plan:remove']">删除</el-button>
         </template>
       </el-table-column>
+      <template #empty><el-empty description="暂无支付套餐，可以先新建一个套餐" /></template>
     </el-table>
 
     <pagination v-show="total > 0" :total="total" v-model:page="queryParams.pageNum" v-model:limit="queryParams.pageSize" @pagination="getList" />
+    </el-card>
 
     <el-dialog :title="title" v-model="open" width="760px" append-to-body>
       <el-form ref="planRef" :model="form" :rules="rules" label-width="110px">
@@ -155,27 +185,34 @@
           </el-radio-group>
         </el-form-item>
 
-        <el-divider content-position="left">支付渠道配置</el-divider>
+        <el-divider content-position="left">Stripe 渠道配置</el-divider>
+        <el-alert class="provider-tip" type="info" :closable="false" show-icon>
+          <template #default>当前后台仅开放 Stripe。填写 <code>prod_...</code> 商品ID，结账时自动校验该商品的默认价格；后续恢复其他渠道时会在这里扩展。</template>
+        </el-alert>
         <el-table :data="form.providers" border>
+          <el-table-column label="配置ID" width="150">
+            <template #default="scope"><PaymentIdentifier :value="scope.row.planProviderId" /></template>
+          </el-table-column>
           <el-table-column label="支付渠道" width="160">
             <template #default="scope">
-              <el-select v-model="scope.row.paymentProvider" placeholder="请选择">
-                <el-option label="Lemon Squeezy" value="lemon_squeezy" />
-                <el-option label="Paddle" value="paddle" />
-                <el-option label="Stripe" value="stripe" />
-                <el-option label="PayPal" value="paypal" />
-                <el-option label="支付宝" value="alipay" />
-              </el-select>
+              <el-tag :type="providerTagType(scope.row.paymentProvider)" effect="plain">{{ providerLabel(scope.row.paymentProvider) }}</el-tag>
             </template>
           </el-table-column>
           <el-table-column label="商品ID">
             <template #default="scope">
-              <el-input v-model="scope.row.providerProductId" placeholder="可选" />
+              <el-input
+                v-model="scope.row.providerProductId"
+                placeholder="Stripe Product ID（prod_...，必填）"
+              />
             </template>
           </el-table-column>
           <el-table-column label="价格/变体ID">
             <template #default="scope">
-              <el-input v-model="scope.row.providerPriceId" placeholder="Lemon variant id / Paddle price id / Stripe price id" />
+              <el-input
+                v-model="scope.row.providerPriceId"
+                disabled
+                placeholder="自动使用商品默认价格"
+              />
             </template>
           </el-table-column>
           <el-table-column label="状态" width="120">
@@ -185,13 +222,7 @@
               </el-select>
             </template>
           </el-table-column>
-          <el-table-column label="操作" width="80" align="center">
-            <template #default="scope">
-              <el-button link type="primary" icon="Delete" @click="removeProvider(scope.$index)" />
-            </template>
-          </el-table-column>
         </el-table>
-        <el-button class="mt12" plain icon="Plus" @click="addProvider">添加渠道</el-button>
       </el-form>
       <template #footer>
         <div class="dialog-footer">
@@ -208,6 +239,8 @@ import { listPaymentPlan, getPaymentPlan, addPaymentPlan, updatePaymentPlan, del
 import type { PaymentPlan, PaymentPlanQuery } from '@/api/payment/plan'
 import { listCustomerSiteOptions } from '@/api/system/customerSite'
 import type { CustomerSiteOption } from '@/api/system/customerSite'
+import { billingTypeLabel, intervalLabel, providerLabel, providerTagType } from '../common'
+import PaymentIdentifier from '../components/PaymentIdentifier.vue'
 
 const { proxy } = getCurrentInstance()
 const { sys_normal_disable } = proxy.useDict('sys_normal_disable')
@@ -268,7 +301,7 @@ function reset() {
     intervalCount: undefined,
     sortOrder: 0,
     status: '0',
-    providers: [{ paymentProvider: 'lemon_squeezy', providerPriceId: '', status: '0' }]
+    providers: [buildStripeProvider()]
   }
   proxy.resetForm('planRef')
 }
@@ -300,24 +333,34 @@ function handleUpdate(row?: PaymentPlan) {
   const planId = row?.planId || ids.value[0]
   getPaymentPlan(planId).then(response => {
     form.value = response.data || {}
-    form.value.providers = form.value.providers || []
+    form.value.providers = normalizeStripeProviders(form.value.providers)
     open.value = true
     title.value = '修改支付套餐'
   })
 }
 
-function addProvider() {
-  form.value.providers = form.value.providers || []
-  form.value.providers.push({ paymentProvider: 'lemon_squeezy', providerPriceId: '', status: '0' })
+function buildStripeProvider() {
+  return { paymentProvider: 'stripe', providerProductId: '', providerPriceId: undefined, status: '0' }
 }
 
-function removeProvider(index: number) {
-  form.value.providers?.splice(index, 1)
+function normalizeStripeProviders(providers?: any[]) {
+  const stripeProvider = providers?.find(item => item.paymentProvider === 'stripe')
+  return [{ ...buildStripeProvider(), ...(stripeProvider || {}) }]
 }
 
 function submitForm() {
   proxy.$refs['planRef'].validate((valid: boolean) => {
     if (!valid) return
+    form.value.providers = normalizeStripeProviders(form.value.providers)
+    const stripeProvider = form.value.providers[0]
+    if (!stripeProvider.providerProductId?.startsWith('prod_')) {
+      proxy.$modal.msgError('Stripe渠道必须填写prod_开头的商品ID')
+      return
+    }
+    form.value.providers?.forEach(item => {
+      item.paymentProvider = 'stripe'
+      item.providerPriceId = undefined
+    })
     const action = form.value.planId ? updatePaymentPlan(form.value) : addPaymentPlan(form.value)
     action.then(() => {
       proxy.$modal.msgSuccess(form.value.planId ? '修改成功' : '新增成功')
@@ -361,6 +404,19 @@ getList()
 </script>
 
 <style scoped>
+.payment-page { background: var(--el-fill-color-lighter); min-height: calc(100vh - 84px); }
+.page-heading { margin-bottom: 18px; }
+.page-heading h2 { margin: 0 0 6px; color: var(--el-text-color-primary); font-size: 22px; }
+.page-heading p { margin: 0; color: var(--el-text-color-secondary); font-size: 13px; }
+.filter-card { margin-bottom: 16px; }
+.filter-card :deep(.el-card__body) { padding-bottom: 2px; }
+.filter-card :deep(.el-form-item) { margin-bottom: 16px; }
+.table-card :deep(.el-card__body) { padding: 0 18px 18px; }
+.table-toolbar { display: flex; align-items: center; min-height: 58px; margin: 0; }
+.toolbar-spacer { flex: 1; }
+.secondary-text { color: var(--el-text-color-secondary); font-size: 12px; }
+.provider-tip { margin-bottom: 14px; }
+.provider-id-line { display: grid; grid-template-columns: 82px minmax(0, 1fr); gap: 6px; align-items: start; margin: 2px 0; text-align: left; }
 .mr4 {
   margin-right: 4px;
 }
