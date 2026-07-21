@@ -9,7 +9,8 @@
     "dev": "vite",
     "build:prod": "vite build",
     "build:stage": "vite build --mode staging",
-    "preview": "vite preview"
+    "preview": "vite build && wrangler dev",
+    "deploy": "vite build && wrangler deploy"
   },
   "repository": {
     "type": "git",
@@ -45,7 +46,8 @@
     "vite": "6.4.1",
     "vite-plugin-compression": "0.5.1",
     "vite-plugin-svg-icons": "2.0.1",
-    "vue-tsc": "2.1.10"
+    "vue-tsc": "2.1.10",
+    "wrangler": "4.112.0"
   },
   "overrides": {
     "quill": "2.0.2"
