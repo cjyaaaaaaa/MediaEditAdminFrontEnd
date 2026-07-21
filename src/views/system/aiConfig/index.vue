@@ -1,20 +1,5 @@
 <template>
   <div class="app-container ai-config-page">
-    <div class="page-heading">
-      <div>
-        <h2>业务配置</h2>
-        <p>按站点维护支付等后端运行配置，配置键由系统枚举统一管理。</p>
-      </div>
-    </div>
-
-    <el-alert
-      class="secret-alert"
-      type="warning"
-      show-icon
-      :closable="false"
-      title="该页面会完整展示配置中的密钥，请仅向必要的管理员授予访问权限。"
-    />
-
     <el-card v-show="showSearch" class="filter-card" shadow="never">
       <el-form ref="queryRef" :model="queryParams" :inline="true" label-position="top">
         <el-form-item label="站点" prop="site">
@@ -365,27 +350,6 @@ onMounted(async () => {
   --config-border: #e5e7eb;
 }
 
-.page-heading {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  margin-bottom: 16px;
-}
-
-.page-heading h2 {
-  margin: 0;
-  color: #1f2937;
-  font-size: 22px;
-  line-height: 1.35;
-}
-
-.page-heading p {
-  margin: 6px 0 0;
-  color: #6b7280;
-  font-size: 14px;
-}
-
-.secret-alert,
 .filter-card {
   margin-bottom: 16px;
 }
@@ -445,9 +409,4 @@ onMounted(async () => {
   line-height: 1.6;
 }
 
-@media (max-width: 768px) {
-  .page-heading {
-    display: block;
-  }
-}
 </style>
