@@ -9,6 +9,7 @@ export interface PaymentPlanProvider {
   providerPriceId?: string
   providerConfig?: string
   status?: string
+  delFlagEnum?: string
   createTime?: string
   updateTime?: string
   remark?: string

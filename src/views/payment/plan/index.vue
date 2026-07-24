@@ -372,7 +372,7 @@ function submitForm() {
 
 function handleDelete(row?: PaymentPlan) {
   const planIds = row?.planId || ids.value
-  proxy.$modal.confirm('是否确认删除支付套餐编号为"' + planIds + '"的数据项？').then(() => {
+  proxy.$modal.confirm('是否确认删除支付套餐编号为"' + planIds + '"的数据项？对应支付渠道配置也会同步删除。').then(() => {
     return delPaymentPlan(planIds)
   }).then(() => {
     getList()
